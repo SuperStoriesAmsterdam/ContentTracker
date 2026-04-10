@@ -1,69 +1,65 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - SuperStories{% endblock %}
+{% block title %}The Content Tracker{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold">SuperStories Content Engine</h1>
-            <p class="lead text-muted">AI-powered content generation with LLM SEO optimization</p>
-        </div>
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 53px); padding: 48px; text-align: center;">
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="bi bi-building me-2"></i>Select Client
-            </div>
-            <div class="card-body">
-                {% if clients %}
-                <form method="POST" action="{{ url_for('login_client') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="mb-3">
-                        <label for="client_id" class="form-label">Client</label>
-                        <select class="form-select" id="client_id" name="client_id" required>
-                            <option value="">Choose a client...</option>
-                            {% for c in clients %}
-                            <option value="{{ c.id }}">{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Enter Workspace
-                    </button>
-                </form>
-                {% else %}
-                <p class="text-muted mb-3">No clients yet. Create your first client to get started.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-plus-circle me-2"></i>Create New Client
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('create_client') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Client Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required 
-                               placeholder="e.g., Hemptex">
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="new_password" name="password" required
-                               placeholder="Set a password for this client">
-                    </div>
-                    <button type="submit" class="btn btn-outline-primary w-100">
-                        <i class="bi bi-plus me-2"></i>Create Client
-                    </button>
-                </form>
-            </div>
-        </div>
+    <!-- Hero -->
+    <div style="max-width: 600px; margin-bottom: 48px;">
+        <h1 style="font-size: 48px; font-weight: 700; line-height: 1.1; margin-bottom: 20px;">Know what to publish next.</h1>
+        <p style="font-size: 16px; color: var(--ct-text-muted); line-height: 1.6; max-width: 480px; margin: 0 auto;">
+            The Content Tracker captures who your expert is, tracks what performs in search, and tells you what to write next — backed by real data, not guesswork.
+        </p>
     </div>
+
+    {% if clients %}
+    <!-- Client Selection -->
+    <div style="max-width: 400px; width: 100%; margin-bottom: 32px;">
+        <form method="POST" action="{{ url_for('login_client') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="mb-3">
+                <select class="form-select" id="client_id" name="client_id" required>
+                    <option value="">Choose a client...</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="password" name="password"
+                       placeholder="Password (if set)">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Sign in</button>
+        </form>
+    </div>
+    <div style="display: flex; gap: 12px; margin-bottom: 48px;">
+        <a href="#create" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">+ New client</a>
+    </div>
+    {% endif %}
+
+    <!-- Create Client -->
+    <div id="create" style="max-width: 400px; width: 100%; {% if clients %}border-top: 1px solid var(--ct-border); padding-top: 32px;{% endif %}">
+        {% if not clients %}
+        <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 24px;">No clients yet. Create your first client to get started.</p>
+        {% endif %}
+        <form method="POST" action="{{ url_for('create_client') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="mb-3">
+                <input type="text" class="form-control" id="name" name="name" required
+                       placeholder="Client name">
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="new_password" name="password"
+                       placeholder="Password (optional)">
+            </div>
+            <button type="submit" class="btn btn-outline-secondary w-100">+ Create Client</button>
+        </form>
+    </div>
+
+    <!-- Footer tagline -->
+    <p style="position: fixed; bottom: 24px; font-size: 12px; color: var(--ct-text-light); letter-spacing: 1px; font-style: italic;">
+        a SuperStories tool
+    </p>
 </div>
 {% endblock %}

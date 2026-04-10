@@ -2,242 +2,238 @@
 {% block title %}Multi-Site Dashboard — {{ client.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1">Multi-Site Dashboard</h2>
-            <p class="text-muted mb-0">Combined Search Console performance for {{ client.name }}</p>
+<!-- Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+    <div>
+        <h1 class="ct-page-title">Multi-Site Dashboard</h1>
+        <p class="ct-page-subtitle" style="margin-bottom: 0;">Combined search performance across all properties</p>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+        {% if not has_sites %}
+        <a href="{{ url_for('site_add') }}" class="ct-btn-outline" style="text-decoration: none; font-size: 13px; padding: 8px 20px;">
+            <i class="bi bi-plus-lg me-1"></i>Add Sites
+        </a>
+        {% endif %}
+        <div style="display: flex; gap: 0;">
+            <a href="{{ url_for('multi_site_dashboard', days=7) }}"
+               style="padding: 8px 20px; font-size: 13px; text-decoration: none; border: 1px solid var(--ct-border); {% if days == 7 %}background: var(--ct-text); color: #fff; border-color: var(--ct-text);{% else %}background: var(--ct-bg); color: var(--ct-text);{% endif %} border-radius: var(--ct-radius-pill) 0 0 var(--ct-radius-pill);">7 days</a>
+            <a href="{{ url_for('multi_site_dashboard', days=28) }}"
+               style="padding: 8px 20px; font-size: 13px; text-decoration: none; border: 1px solid var(--ct-border); border-left: none; {% if days == 28 %}background: var(--ct-text); color: #fff; border-color: var(--ct-text);{% else %}background: var(--ct-bg); color: var(--ct-text);{% endif %}">28 days</a>
+            <a href="{{ url_for('multi_site_dashboard', days=90) }}"
+               style="padding: 8px 20px; font-size: 13px; text-decoration: none; border: 1px solid var(--ct-border); border-left: none; {% if days == 90 %}background: var(--ct-text); color: #fff; border-color: var(--ct-text);{% else %}background: var(--ct-bg); color: var(--ct-text);{% endif %} border-radius: 0 var(--ct-radius-pill) var(--ct-radius-pill) 0;">90 days</a>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-            {% if not has_sites %}
-            <a href="{{ url_for('site_add') }}" class="btn btn-sm btn-outline-primary me-2">
-                <i class="bi bi-plus-lg me-1"></i>Add Sites
-            </a>
-            {% endif %}
-            <div class="btn-group btn-group-sm" role="group">
-                <a href="{{ url_for('multi_site_dashboard', days=7) }}"
-                   class="btn {% if days == 7 %}btn-primary{% else %}btn-outline-secondary{% endif %}">7 days</a>
-                <a href="{{ url_for('multi_site_dashboard', days=28) }}"
-                   class="btn {% if days == 28 %}btn-primary{% else %}btn-outline-secondary{% endif %}">28 days</a>
-                <a href="{{ url_for('multi_site_dashboard', days=90) }}"
-                   class="btn {% if days == 90 %}btn-primary{% else %}btn-outline-secondary{% endif %}">90 days</a>
+    </div>
+</div>
+
+{% if not site_data %}
+<div style="text-align: center; padding: 80px 0; color: var(--ct-text-muted);">
+    <i class="bi bi-globe" style="font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3;"></i>
+    <p style="margin-bottom: 4px;">No sites configured yet.</p>
+    <p style="font-size: 13px; margin-bottom: 24px;">Add your websites to see combined performance data.</p>
+    <a href="{{ url_for('site_add') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add First Site
+    </a>
+</div>
+{% else %}
+
+<!-- Stat Cards -->
+{% if summary %}
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;">
+    <div class="ct-stat-card">
+        <div class="ct-stat-label">Total Clicks</div>
+        <div class="ct-stat-value">{{ "{:,}".format(summary | sum(attribute='clicks')) }}</div>
+    </div>
+    <div class="ct-stat-card">
+        <div class="ct-stat-label">Total Impressions</div>
+        <div class="ct-stat-value">{{ "{:,}".format(summary | sum(attribute='impressions')) }}</div>
+    </div>
+    <div class="ct-stat-card">
+        <div class="ct-stat-label">Avg. Position</div>
+        {% set positions = summary | selectattr('position') | map(attribute='position') | select('gt', 0) | list %}
+        <div class="ct-stat-value">{% if positions %}{{ (positions | sum / positions | length) | round(1) }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="ct-stat-card">
+        <div class="ct-stat-label">Properties</div>
+        <div class="ct-stat-value">{{ summary | length }}</div>
+        <div class="ct-stat-change">sites connected</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Tabs -->
+<div style="display: flex; border-bottom: 1px solid var(--ct-border); margin-bottom: 24px;">
+    <a href="#" class="ct-tab active" data-bs-toggle="tab" data-bs-target="#all-sites">All Sites</a>
+    {% for entry in site_data %}
+    <a href="#" class="ct-tab" data-bs-toggle="tab" data-bs-target="#site-{{ loop.index }}">{{ entry.site.name or entry.site.url }}</a>
+    {% endfor %}
+</div>
+
+<!-- Tab content -->
+<div class="tab-content">
+
+    <!-- All Sites summary -->
+    <div class="tab-pane fade show active" id="all-sites" role="tabpanel">
+        <div class="ct-table-wrap">
+            <table class="ct-table">
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th style="text-align: right;">Clicks</th>
+                        <th style="text-align: right;">Impressions</th>
+                        <th style="text-align: right;">Avg. Position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td style="text-align: right; font-weight: 600;">{{ "{:,}".format(row.clicks) }}</td>
+                        <td style="text-align: right;">{{ "{:,}".format(row.impressions) }}</td>
+                        <td style="text-align: right;">{{ row.position if row.position else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if summary %}
+                    <tr class="ct-total-row">
+                        <td>Total</td>
+                        <td style="text-align: right;">{{ "{:,}".format(summary | sum(attribute='clicks')) }}</td>
+                        <td style="text-align: right;">{{ "{:,}".format(summary | sum(attribute='impressions')) }}</td>
+                        <td style="text-align: right;">—</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Per-site tabs -->
+    {% for entry in site_data %}
+    <div class="tab-pane fade" id="site-{{ loop.index }}" role="tabpanel">
+
+        {% if entry.error %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Could not load data for {{ entry.site.name or entry.site.url }}: {{ entry.error }}
+        </div>
+        {% elif not entry.performance %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            No GSC property configured for this site.
+            <a href="{{ url_for('sites_list') }}">Edit site settings</a>.
+        </div>
+        {% else %}
+
+        <!-- Per-site stat cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;">
+            <div class="ct-stat-card">
+                <div class="ct-stat-label">Clicks</div>
+                <div class="ct-stat-value">{{ "{:,}".format(entry.performance.totals.get('clicks', 0)) }}</div>
+            </div>
+            <div class="ct-stat-card">
+                <div class="ct-stat-label">Impressions</div>
+                <div class="ct-stat-value">{{ "{:,}".format(entry.performance.totals.get('impressions', 0)) }}</div>
+            </div>
+            <div class="ct-stat-card">
+                <div class="ct-stat-label">Avg. Position</div>
+                {% set positions = entry.performance.rows | map(attribute='position') | select('gt', 0) | list %}
+                <div class="ct-stat-value">{% if positions %}{{ (positions | sum / positions | length) | round(1) }}{% else %}—{% endif %}</div>
+            </div>
+            <div class="ct-stat-card">
+                <div class="ct-stat-label">Avg. CTR</div>
+                {% set ctrs = entry.performance.rows | map(attribute='ctr') | select('gt', 0) | list %}
+                <div class="ct-stat-value">{% if ctrs %}{{ (ctrs | sum / ctrs | length) | round(1) }}%{% else %}—{% endif %}</div>
             </div>
         </div>
-    </div>
 
-    {% if not site_data %}
-    <div class="card">
-        <div class="card-body text-center py-5 text-muted">
-            <i class="bi bi-globe fs-1 mb-3 d-block"></i>
-            <p class="mb-1">No sites configured yet.</p>
-            <p class="mb-3 small">Add your websites to see combined performance data.</p>
-            <a href="{{ url_for('site_add') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>Add First Site
-            </a>
-        </div>
-    </div>
-    {% else %}
-
-    <!-- Tabs -->
-    <ul class="nav nav-tabs mb-4" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="all-tab" data-bs-toggle="tab"
-                    data-bs-target="#all-sites" type="button" role="tab">
-                <i class="bi bi-grid me-1"></i>All Sites
-            </button>
-        </li>
-        {% for entry in site_data %}
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="site-{{ loop.index }}-tab" data-bs-toggle="tab"
-                    data-bs-target="#site-{{ loop.index }}" type="button" role="tab">
-                {{ entry.site.name or entry.site.url }}
-            </button>
-        </li>
-        {% endfor %}
-    </ul>
-
-    <!-- Tab content -->
-    <div class="tab-content">
-
-        <!-- All Sites summary tab -->
-        <div class="tab-pane fade show active" id="all-sites" role="tabpanel">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-bar-chart me-2"></i>Summary — Last {{ days }} days
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="ct-table-wrap">
+                    <div style="padding: 14px 24px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--ct-border);">
+                        Top Keywords by Impressions
+                    </div>
+                    <table class="ct-table">
+                        <thead>
                             <tr>
-                                <th>Site</th>
-                                <th class="text-end">Clicks</th>
-                                <th class="text-end">Impressions</th>
-                                <th class="text-end">Avg. Position</th>
+                                <th>Keyword</th>
+                                <th style="text-align: right;">Impressions</th>
+                                <th style="text-align: right;">Clicks</th>
+                                <th style="text-align: right;">Position</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for row in summary %}
+                            {% for row in entry.performance.rows | sort(attribute='impressions', reverse=true) %}
+                            {% if loop.index <= 10 %}
                             <tr>
-                                <td>{{ row.name }}</td>
-                                <td class="text-end fw-bold">{{ "{:,}".format(row.clicks) }}</td>
-                                <td class="text-end">{{ "{:,}".format(row.impressions) }}</td>
-                                <td class="text-end">{{ row.position if row.position else '—' }}</td>
-                            </tr>
-                            {% endfor %}
-                            {% if summary %}
-                            <tr class="table-light fw-bold">
-                                <td>Total</td>
-                                <td class="text-end">{{ "{:,}".format(summary | sum(attribute='clicks')) }}</td>
-                                <td class="text-end">{{ "{:,}".format(summary | sum(attribute='impressions')) }}</td>
-                                <td class="text-end">—</td>
+                                <td>{{ row.query }}</td>
+                                <td style="text-align: right;">{{ "{:,}".format(row.impressions) }}</td>
+                                <td style="text-align: right;">{{ row.clicks }}</td>
+                                <td style="text-align: right;">{{ row.position | round(1) }}</td>
                             </tr>
                             {% endif %}
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="ct-table-wrap">
+                    <div style="padding: 14px 24px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--ct-border);">
+                        Top Pages by Clicks
+                    </div>
+                    {% if entry.pages %}
+                    <table class="ct-table">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th style="text-align: right;">Clicks</th>
+                                <th style="text-align: right;">Impressions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in entry.pages | sort(attribute='clicks', reverse=true) %}
+                            {% if loop.index <= 10 %}
+                            <tr>
+                                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <a href="{{ row.page }}" target="_blank" style="text-decoration: none;">
+                                        {{ row.page | replace(entry.site.url, '/') }}
+                                    </a>
+                                </td>
+                                <td style="text-align: right;">{{ row.clicks }}</td>
+                                <td style="text-align: right;">{{ "{:,}".format(row.impressions) }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div style="padding: 24px; color: var(--ct-text-muted); font-size: 13px;">No page data available.</div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <!-- Per-site tabs -->
-        {% for entry in site_data %}
-        <div class="tab-pane fade" id="site-{{ loop.index }}" role="tabpanel">
-
-            {% if entry.error %}
-            <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                Could not load data for {{ entry.site.name or entry.site.url }}: {{ entry.error }}
-            </div>
-            {% elif not entry.performance %}
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                No GSC property configured for this site.
-                <a href="{{ url_for('sites_list') }}">Edit site settings</a>.
-            </div>
-            {% else %}
-
-            <!-- Totals -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body py-3">
-                            <div class="text-muted small">Clicks</div>
-                            <div class="fs-3 fw-bold">{{ "{:,}".format(entry.performance.totals.get('clicks', 0)) }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body py-3">
-                            <div class="text-muted small">Impressions</div>
-                            <div class="fs-3 fw-bold">{{ "{:,}".format(entry.performance.totals.get('impressions', 0)) }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body py-3">
-                            <div class="text-muted small">Avg. Position</div>
-                            {% set positions = entry.performance.rows | map(attribute='position') | select('gt', 0) | list %}
-                            <div class="fs-3 fw-bold">
-                                {% if positions %}{{ (positions | sum / positions | length) | round(1) }}{% else %}—{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body py-3">
-                            <div class="text-muted small">Avg. CTR</div>
-                            {% set ctrs = entry.performance.rows | map(attribute='ctr') | select('gt', 0) | list %}
-                            <div class="fs-3 fw-bold">
-                                {% if ctrs %}{{ ((ctrs | sum / ctrs | length) * 100) | round(1) }}%{% else %}—{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <!-- Top keywords -->
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="bi bi-search me-2"></i>Top Keywords by Impressions
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Keyword</th>
-                                        <th class="text-end">Impressions</th>
-                                        <th class="text-end">Clicks</th>
-                                        <th class="text-end">Position</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in entry.performance.rows | sort(attribute='impressions', reverse=true) %}
-                                    {% if loop.index <= 10 %}
-                                    <tr>
-                                        <td>{{ row.query }}</td>
-                                        <td class="text-end">{{ "{:,}".format(row.impressions) }}</td>
-                                        <td class="text-end">{{ row.clicks }}</td>
-                                        <td class="text-end">{{ row.position | round(1) }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Top pages -->
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="bi bi-file-earmark me-2"></i>Top Pages by Clicks
-                        </div>
-                        {% if entry.pages %}
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Page</th>
-                                        <th class="text-end">Clicks</th>
-                                        <th class="text-end">Impressions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in entry.pages | sort(attribute='clicks', reverse=true) %}
-                                    {% if loop.index <= 10 %}
-                                    <tr>
-                                        <td class="text-truncate" style="max-width: 300px;">
-                                            <a href="{{ row.page }}" target="_blank" class="text-decoration-none">
-                                                {{ row.page | replace(entry.site.url, '/') }}
-                                            </a>
-                                        </td>
-                                        <td class="text-end">{{ row.clicks }}</td>
-                                        <td class="text-end">{{ "{:,}".format(row.impressions) }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="card-body text-muted small">No page data available.</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {% endif %}
-        </div>
-        {% endfor %}
-
+        {% endif %}
     </div>
-    {% endif %}
+    {% endfor %}
 
 </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Custom tab handling for ct-tab elements
+document.querySelectorAll('.ct-tab').forEach(tab => {
+    tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.ct-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const target = this.getAttribute('data-bs-target');
+        document.querySelectorAll('.tab-pane').forEach(p => {
+            p.classList.remove('show', 'active');
+        });
+        document.querySelector(target).classList.add('show', 'active');
+    });
+});
+</script>
 {% endblock %}

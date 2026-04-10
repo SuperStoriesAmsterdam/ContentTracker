@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}{{ client.name }} Workspace - SuperStories{% endblock %}
+{% block title %}{{ client.name }} Workspace{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-house-door me-2"></i>{{ client.name }} Workspace</h2>
+<!-- Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+    <h1 class="ct-page-title">{{ client.name }} Workspace</h1>
     <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle me-2"></i>New Content Brief
     </a>
@@ -12,140 +13,122 @@
 
 <div class="row">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-file-earmark-text me-2"></i>Recent Content</span>
-                <span class="badge bg-secondary">{{ contents|length }} items</span>
+        <!-- Recent Content -->
+        <div class="ct-table-wrap mb-4">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--ct-border);">
+                <span style="font-weight: 600; font-size: 14px;">Recent Content</span>
+                <span class="ct-badge ct-badge-info">{{ contents|length }} items</span>
             </div>
-            <div class="card-body">
-                {% if contents %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for content in contents %}
-                            <tr>
-                                <td>
-                                    <a href="{{ url_for('view_content', content_id=content.id) }}">
-                                        {{ content.h1 or content.meta_title or 'Untitled' }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark">{{ content.content_type }}</span>
-                                </td>
-                                <td class="text-muted small">{{ content.created_at[:10] if content.created_at else 'N/A' }}</td>
-                                <td>
-                                    <a href="{{ url_for('view_content', content_id=content.id) }}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ url_for('derive_social', content_id=content.id) }}" 
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-share"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-file-earmark-plus display-4 mb-3"></i>
-                    <p>No content generated yet.</p>
-                    <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
-                        Create Your First Brief
-                    </a>
-                </div>
-                {% endif %}
+            {% if contents %}
+            <table class="ct-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Created</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for content in contents %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('view_content', content_id=content.id) }}" style="text-decoration: none; font-weight: 500;">
+                                {{ content.h1 or content.meta_title or 'Untitled' }}
+                            </a>
+                        </td>
+                        <td><span class="ct-badge ct-badge-info">{{ content.content_type }}</span></td>
+                        <td style="color: var(--ct-text-muted); font-size: 13px;">{{ content.created_at[:10] if content.created_at else 'N/A' }}</td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('view_content', content_id=content.id) }}" class="ct-btn-outline" style="text-decoration: none; padding: 4px 12px; font-size: 12px;">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('derive_social', content_id=content.id) }}" class="ct-btn-outline" style="text-decoration: none; padding: 4px 12px; font-size: 12px;">
+                                <i class="bi bi-share"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 48px 24px; color: var(--ct-text-muted);">
+                <i class="bi bi-file-earmark-plus" style="font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.3;"></i>
+                <p style="margin-bottom: 16px;">No content generated yet.</p>
+                <a href="{{ url_for('create_brief') }}" class="btn btn-primary">Create Your First Brief</a>
             </div>
+            {% endif %}
         </div>
 
         {% if briefs %}
-        <div class="card mt-4">
-            <div class="card-header">
-                <i class="bi bi-file-text me-2"></i>Recent Briefs
+        <!-- Recent Briefs -->
+        <div class="ct-table-wrap">
+            <div style="padding: 14px 24px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--ct-border);">
+                Recent Briefs
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Brief</th>
-                                <th>Type</th>
-                                <th>Keyword</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for brief in briefs[:10] %}
-                            <tr>
-                                <td>{{ brief.title }}</td>
-                                <td><span class="badge bg-light text-dark">{{ brief.content_type }}</span></td>
-                                <td class="text-muted">{{ brief.primary_keyword or '-' }}</td>
-                                <td>
-                                    <a href="{{ url_for('edit_brief', brief_id=brief.id) }}"
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <table class="ct-table">
+                <thead>
+                    <tr>
+                        <th>Brief</th>
+                        <th>Type</th>
+                        <th>Keyword</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for brief in briefs[:10] %}
+                    <tr>
+                        <td style="font-weight: 500;">{{ brief.title }}</td>
+                        <td><span class="ct-badge ct-badge-info">{{ brief.content_type }}</span></td>
+                        <td style="color: var(--ct-text-muted);">{{ brief.primary_keyword or '-' }}</td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="ct-btn-outline" style="text-decoration: none; padding: 4px 12px; font-size: 12px;">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% endif %}
     </div>
 
     <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">
+        <!-- Client Info -->
+        <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 24px; margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 16px;">
                 <i class="bi bi-info-circle me-2"></i>Client Info
             </div>
-            <div class="card-body">
-                <p><strong>Tone:</strong> {{ client.tone or 'Not set' }}</p>
-                <p><strong>Target Audience:</strong> {{ client.target_audience or 'Not set' }}</p>
-                {% if client.is_thought_leadership %}
-                <span class="badge bg-info">Thought Leadership Mode</span>
-                {% endif %}
-                <hr>
-                <a href="{{ url_for('client_settings') }}" class="btn btn-sm btn-outline-secondary w-100">
+            <p style="font-size: 14px; margin-bottom: 8px;"><strong>Tone:</strong> {{ client.tone or 'Not set' }}</p>
+            <p style="font-size: 14px; margin-bottom: 16px;"><strong>Target Audience:</strong> {{ client.target_audience or 'Not set' }}</p>
+            <div style="border-top: 1px solid var(--ct-border); padding-top: 16px;">
+                <a href="{{ url_for('client_settings') }}" class="ct-btn-outline" style="text-decoration: none; display: block; text-align: center; padding: 8px 20px; font-size: 13px;">
                     <i class="bi bi-gear me-2"></i>Edit Settings
                 </a>
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
+        <!-- Voice Bank -->
+        <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 24px; margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">
                 <i class="bi bi-mic me-2"></i>Voice Bank
             </div>
-            <div class="card-body">
-                <p class="text-muted mb-2">{{ voice_snippets|length }} transcript(s)</p>
-                <a href="{{ url_for('voice_bank') }}" class="btn btn-sm btn-outline-secondary w-100">
-                    <i class="bi bi-plus me-2"></i>Manage Voice Bank
-                </a>
-            </div>
+            <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 16px;">{{ voice_snippets|length }} transcript(s)</p>
+            <a href="{{ url_for('voice_bank') }}" class="ct-btn-outline" style="text-decoration: none; display: block; text-align: center; padding: 8px 20px; font-size: 13px;">
+                <i class="bi bi-plus me-2"></i>Manage Voice Bank
+            </a>
         </div>
 
-        <div class="card">
-            <div class="card-header">
+        <!-- Style Resources -->
+        <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 24px;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">
                 <i class="bi bi-file-text me-2"></i>Style Resources
             </div>
-            <div class="card-body">
-                <p class="text-muted mb-2">{{ style_resources|length }} example(s)</p>
-                <a href="{{ url_for('style_resources') }}" class="btn btn-sm btn-outline-secondary w-100">
-                    <i class="bi bi-plus me-2"></i>Manage Style Resources
-                </a>
-            </div>
+            <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 16px;">{{ style_resources|length }} example(s)</p>
+            <a href="{{ url_for('style_resources') }}" class="ct-btn-outline" style="text-decoration: none; display: block; text-align: center; padding: 8px 20px; font-size: 13px;">
+                <i class="bi bi-plus me-2"></i>Manage Style Resources
+            </a>
         </div>
     </div>
 </div>
