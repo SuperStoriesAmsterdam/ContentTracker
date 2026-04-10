@@ -39,8 +39,8 @@ def run_migrations(db_path):
         module = importlib.import_module(f'migrations.{migration_name}')
         module.upgrade(conn)
         
-        # Record migration
-        cursor.execute('INSERT INTO _migrations (name) VALUES (?)', (migration_name,))
+        # Record migration (OR IGNORE prevents crash when multiple workers race)
+        cursor.execute('INSERT OR IGNORE INTO _migrations (name) VALUES (?)', (migration_name,))
         conn.commit()
         
         print(f"  ✓ Applied {migration_name}")
