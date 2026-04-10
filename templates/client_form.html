@@ -1,32 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}New Client - SuperStories Content Engine{% endblock %}
+{% block title %}New Client — The Content Tracker{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h1>Create New Client</h1>
-        
-        <form method="post" class="mt-4">
+<div style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 53px); padding: 48px;">
+    <div style="max-width: 400px; width: 100%; text-align: center;">
+        <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 32px;">Add a client</h1>
+
+        <form method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="mb-3">
-                <label for="name" class="form-label">Client Name *</label>
+            <div class="mb-3" style="text-align: left;">
                 <input type="text" class="form-control" id="name" name="name" required
-                       placeholder="e.g., Hemptex, Connirae Andreas">
+                       placeholder="Client name">
             </div>
-            
-            <div class="mb-4">
-                <label for="password" class="form-label">Password *</label>
-                <input type="password" class="form-control" id="password" name="password" required
-                       placeholder="Create a password for this client">
-                <div class="form-text">
-                    This password protects access to the client's workspace.
-                </div>
+            <div class="mb-4" style="text-align: left;">
+                <input type="password" class="form-control" id="password" name="password"
+                       placeholder="Password (optional)">
             </div>
-            
-            <div class="d-flex gap-2">
+            <div style="display: flex; gap: 12px; justify-content: center;">
                 <button type="submit" class="btn btn-primary">Create Client</button>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                <a href="{{ url_for('dashboard') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-flex; align-items: center;">Cancel</a>
             </div>
         </form>
     </div>

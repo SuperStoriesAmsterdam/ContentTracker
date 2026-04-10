@@ -131,15 +131,16 @@ def create_client():
         name = request.form.get('name', '').strip()
         password = request.form.get('password', '').strip()
         
-        if not name or not password:
-            flash('Name and password are required.', 'error')
+        if not name:
+            flash('Client name is required.', 'error')
             return redirect(url_for('create_client'))
         
         if Client.get_by_name(name):
             flash('A client with this name already exists.', 'error')
             return redirect(url_for('create_client'))
         
-        client = Client(name=name, password=Client.hash_password(password))
+        hashed_pw = Client.hash_password(password) if password else None
+        client = Client(name=name, password=hashed_pw)
         client.save()
         
         session['client_id'] = client.id
@@ -156,8 +157,13 @@ def login_client():
     password = request.form.get('password', '').strip()
     
     client = Client.get_by_id(client_id)
-    if not client or not Client.verify_password(password, client.password):
-        flash('Invalid credentials.', 'error')
+    if not client:
+        flash('Client not found.', 'error')
+        return redirect(url_for('dashboard'))
+
+    # If client has a password set, verify it
+    if client.password and not Client.verify_password(password, client.password):
+        flash('Invalid password.', 'error')
         return redirect(url_for('dashboard'))
     
     session['client_id'] = client.id
