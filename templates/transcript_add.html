@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Add Transcript{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Add Transcript</h2>
+                    <p class="text-muted mb-0">Paste a transcript to extract intelligence for the Expert Profile.</p>
+                </div>
+                <a href="{{ url_for('transcripts_list') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('transcript_add') }}" id="extractForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label fw-semibold">Title *</label>
+                            <input type="text" class="form-control" id="title" name="title"
+                                   placeholder="e.g. Connirae strategy call April 8" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="source" class="form-label fw-semibold">Source</label>
+                            <input type="text" class="form-control" id="source" name="source"
+                                   placeholder="e.g. Fireflies, Zoom, Manual">
+                            <div class="form-text">Where did this transcript come from?</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="raw_text" class="form-label fw-semibold">Transcript Text *</label>
+                            <textarea class="form-control" id="raw_text" name="raw_text"
+                                      rows="20" placeholder="Paste the full transcript text here..." required></textarea>
+                            <div class="form-text">Paste the full transcript text. Extraction takes about 10–20 seconds.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="extractBtn">
+                                <i class="bi bi-stars me-2"></i>Extract
+                            </button>
+                        </div>
+
+                        <div id="loadingMessage" class="text-center text-muted mt-3" style="display: none;">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            Extracting intelligence from transcript — this takes 10–20 seconds...
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('extractForm').addEventListener('submit', function() {
+    document.getElementById('extractBtn').disabled = true;
+    document.getElementById('extractBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Extracting...';
+    document.getElementById('loadingMessage').style.display = 'block';
+});
+</script>
+{% endblock %}

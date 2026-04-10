@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Transcripts{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Transcripts</h2>
+            <p class="text-muted mb-0">Paste transcripts to extract intelligence for the Expert Profile.</p>
+        </div>
+        <a href="{{ url_for('transcript_add') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Add Transcript
+        </a>
+    </div>
+
+    {% if transcripts %}
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Source</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transcript in transcripts %}
+                    <tr>
+                        <td class="fw-medium">{{ transcript.title }}</td>
+                        <td class="text-muted">{{ transcript.source or '—' }}</td>
+                        <td class="text-muted">{{ transcript.created_at[:10] if transcript.created_at else '—' }}</td>
+                        <td>
+                            {% if transcript.extraction_status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif transcript.extraction_status == 'extracted' %}
+                                <span class="badge bg-warning text-dark">Needs Review</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if transcript.extraction_status in ('extracted', 'approved') %}
+                                <a href="{{ url_for('transcript_review', transcript_id=transcript.id) }}"
+                                   class="btn btn-outline-primary">Review</a>
+                                {% endif %}
+                                <form action="{{ url_for('transcript_delete', transcript_id=transcript.id) }}"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete this transcript?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-mic fs-1 mb-3 d-block"></i>
+            <p class="mb-0">No transcripts yet. Add one to start building the Expert Profile.</p>
+            <a href="{{ url_for('transcript_add') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-lg me-1"></i>Add First Transcript
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

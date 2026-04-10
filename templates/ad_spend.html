@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Ad Spend — {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Ad Spend</h2>
+            <p class="text-muted mb-0">Monthly advertising spend — entered manually, shown alongside organic performance.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header fw-semibold">Add Spend Entry</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('ad_spend_add') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label form-label-sm">Month</label>
+                                <select class="form-select form-select-sm" name="month" required>
+                                    {% for num, name in month_names.items() %}
+                                    <option value="{{ num }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label form-label-sm">Year</label>
+                                <input type="number" class="form-control form-control-sm" name="year"
+                                       value="{{ now.year if now else 2026 }}" min="2020" max="2030" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label form-label-sm">Platform</label>
+                            <select class="form-select form-select-sm" name="platform" required>
+                                {% for platform in platforms %}
+                                <option value="{{ platform }}">{{ platform }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-8">
+                                <label class="form-label form-label-sm">Amount</label>
+                                <input type="number" class="form-control form-control-sm" name="amount"
+                                       step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label form-label-sm">Currency</label>
+                                <select class="form-select form-select-sm" name="currency">
+                                    {% for currency in currencies %}
+                                    <option value="{{ currency }}">{{ currency }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label form-label-sm">Notes (optional)</label>
+                            <input type="text" class="form-control form-control-sm" name="notes"
+                                   placeholder="e.g. Brand awareness campaign">
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-sm">Add Entry</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            {% if monthly_totals %}
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">Monthly Totals</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Month</th>
+                                <th>Year</th>
+                                <th class="text-end">Total Spend</th>
+                                <th>Currency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in monthly_totals %}
+                            <tr>
+                                <td>{{ month_names.get(row.month, row.month) }}</td>
+                                <td>{{ row.year }}</td>
+                                <td class="text-end fw-semibold">{{ '{:,.2f}'.format(row.total) }}</td>
+                                <td class="text-muted">{{ row.currency }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if entries %}
+            <div class="card">
+                <div class="card-header fw-semibold">All Entries</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Month</th>
+                                <th>Platform</th>
+                                <th class="text-end">Amount</th>
+                                <th>Currency</th>
+                                <th>Notes</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                            <tr>
+                                <td>{{ entry.month_name }} {{ entry.year }}</td>
+                                <td><span class="badge bg-secondary">{{ entry.platform }}</span></td>
+                                <td class="text-end">{{ '{:,.2f}'.format(entry.amount) }}</td>
+                                <td class="text-muted">{{ entry.currency }}</td>
+                                <td class="text-muted small">{{ entry.notes or '—' }}</td>
+                                <td>
+                                    <form method="POST"
+                                          action="{{ url_for('ad_spend_delete', spend_id=entry.id) }}"
+                                          onsubmit="return confirm('Delete this entry?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5 text-muted">
+                    <i class="bi bi-graph-up-arrow fs-1 mb-3 d-block"></i>
+                    <p class="mb-0">No spend entries yet. Add your first monthly entry on the left.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

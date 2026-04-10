@@ -1,0 +1,79 @@
+<!-- 
+Google Integration - Template Snippets
+Add these to your existing templates
+-->
+
+<!-- ============================================
+     ADD TO base.html - In the sidebar navigation
+     ============================================ -->
+
+<!-- Add these links to the sidebar, after existing nav items -->
+<a href="{{ url_for('search_console_dashboard') }}" 
+   class="list-group-item list-group-item-action {% if request.endpoint == 'search_console_dashboard' %}active{% endif %}">
+    📊 Search Console
+</a>
+<a href="{{ url_for('analytics_dashboard') }}" 
+   class="list-group-item list-group-item-action {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
+    📈 Analytics
+</a>
+
+<!-- Google connection status (add to navbar or sidebar footer) -->
+{% if session.get('google_credentials') %}
+<div class="google-status text-success small mt-3 px-3">
+    ✓ Google Connected
+    <a href="{{ url_for('google_disconnect') }}" class="text-muted ms-2">(disconnect)</a>
+</div>
+{% else %}
+<div class="google-status text-muted small mt-3 px-3">
+    <a href="{{ url_for('google_connect') }}">🔗 Connect Google</a>
+</div>
+{% endif %}
+
+
+<!-- ============================================
+     ADD TO view_content.html - Actions section
+     ============================================ -->
+
+<div class="google-actions mt-3">
+    <h6>Google Docs</h6>
+    
+    {% if session.get('google_credentials') %}
+        <!-- Export button -->
+        <a href="{{ url_for('export_to_google', content_id=content.id) }}" 
+           class="btn btn-outline-primary btn-sm">
+            📄 Export to Google Docs
+        </a>
+        
+        {% if content.google_doc_url %}
+        <!-- Already exported - show additional options -->
+        <a href="{{ content.google_doc_url }}" 
+           class="btn btn-outline-secondary btn-sm" 
+           target="_blank">
+            ↗ Open in Google Docs
+        </a>
+        <small class="d-block text-muted mt-1">
+            Last exported to: <a href="{{ content.google_doc_url }}" target="_blank">Google Doc</a>
+        </small>
+        {% endif %}
+        
+    {% else %}
+        <!-- Not connected -->
+        <a href="{{ url_for('google_connect', redirect=request.url) }}" 
+           class="btn btn-outline-secondary btn-sm">
+            🔗 Connect Google to Export
+        </a>
+    {% endif %}
+</div>
+
+
+<!-- ============================================
+     OPTIONAL: Add to workspace.html - Quick actions
+     ============================================ -->
+
+{% if not session.get('google_credentials') %}
+<div class="alert alert-info">
+    <strong>Tip:</strong> 
+    <a href="{{ url_for('google_connect') }}">Connect your Google account</a> 
+    to export content directly to Google Docs.
+</div>
+{% endif %}

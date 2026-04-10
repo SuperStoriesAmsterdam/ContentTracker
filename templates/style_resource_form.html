@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if resource %}Edit{% else %}Add{% endif %} Style Resource - {{ client.name }}
+{% endblock %}
+
+{% block content %}
+<h1>{% if resource %}Edit{% else %}Add{% endif %} Style Resource</h1>
+
+<p class="text-muted">
+    Add example content that represents the ideal style. The AI will use this as a reference.
+</p>
+
+<form method="post" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3">
+        <label for="resource_type" class="form-label">Type *</label>
+        <select class="form-select" id="resource_type" name="resource_type" required>
+            {% for type_code, type_name in resource_types %}
+            <option value="{{ type_code }}" 
+                    {% if resource and resource.resource_type == type_code %}selected{% endif %}>
+                {{ type_name }}
+            </option>
+            {% endfor %}
+        </select>
+        <div class="form-text">What kind of content is this?</div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="title" class="form-label">Title *</label>
+        <input type="text" class="form-control" id="title" name="title" 
+               value="{{ resource.title if resource else '' }}" required
+               placeholder="e.g., Example LinkedIn Post - Sustainability">
+        <div class="form-text">Give this example a descriptive name</div>
+    </div>
+    
+    <div class="mb-4">
+        <label for="content" class="form-label">Content *</label>
+        <textarea class="form-control" id="content" name="content" rows="15" required
+                  placeholder="Paste the example content here...">{{ resource.content if resource else '' }}</textarea>
+        <div class="form-text">
+            Paste the full example content. This should be a real piece that represents the style you want.
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            {% if resource %}Update{% else %}Save{% endif %} Resource
+        </button>
+        <a href="{{ url_for('style_resources') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if snippet %}Edit{% else %}Add{% endif %} Voice Snippet - {{ client.name }}
+{% endblock %}
+
+{% block content %}
+<h1>{% if snippet %}Edit{% else %}Add{% endif %} Voice Snippet</h1>
+
+<form method="post" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3">
+        <label for="title" class="form-label">Title *</label>
+        <input type="text" class="form-control" id="title" name="title" 
+               value="{{ snippet.title if snippet else '' }}" required
+               placeholder="e.g., Interview - Sustainability in Construction">
+        <div class="form-text">Give this snippet a descriptive name</div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="source" class="form-label">Source</label>
+        <input type="text" class="form-control" id="source" name="source" 
+               value="{{ snippet.source if snippet else '' }}"
+               placeholder="e.g., Podcast Episode 15, Client Call 2024-01-15">
+        <div class="form-text">Where did this transcript come from?</div>
+    </div>
+    
+    <div class="mb-4">
+        <label for="transcript" class="form-label">Transcript *</label>
+        <textarea class="form-control" id="transcript" name="transcript" rows="15" required
+                  placeholder="Paste the transcript here...">{{ snippet.transcript if snippet else '' }}</textarea>
+        <div class="form-text">
+            Paste the raw transcript. This can be from Talk to the Hand, a podcast, interview, or any other source.
+            The AI will extract insights and use this to inform the content's voice.
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            {% if snippet %}Update{% else %}Save{% endif %} Snippet
+        </button>
+        <a href="{{ url_for('voice_bank') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

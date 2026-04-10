@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Content Strategy - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-lightbulb me-2"></i>Content Strategy</h2>
+    {% if not has_gsc %}
+    <a href="{{ url_for('google_connect', redirect=url_for('content_strategy')) }}" class="btn btn-outline-primary">
+        <i class="bi bi-google me-2"></i>Connect Google
+    </a>
+    {% endif %}
+</div>
+
+{% if not has_gsc %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Connect your Google account and configure a Search Console site in
+    <a href="{{ url_for('search_console_dashboard') }}">Search Console</a> to get data-driven recommendations.
+</div>
+{% endif %}
+
+{% if recommendations %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">AI-Powered Recommendations</h5>
+    </div>
+    {% for rec in recommendations %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card h-100 border-{{ 'danger' if rec.priority == 'high' else ('warning' if rec.priority == 'medium' else 'secondary') }}">
+            <div class="card-header bg-{{ 'danger' if rec.priority == 'high' else ('warning' if rec.priority == 'medium' else 'secondary') }} bg-opacity-10 d-flex justify-content-between align-items-center">
+                <span class="badge bg-{{ 'danger' if rec.priority == 'high' else ('warning' if rec.priority == 'medium' else 'secondary') }}">
+                    {{ rec.priority|upper }}
+                </span>
+                <span class="badge bg-light text-dark">
+                    {% if rec.type == 'new_content' %}
+                    <i class="bi bi-plus-circle me-1"></i>New Content
+                    {% elif rec.type == 'optimize_existing' %}
+                    <i class="bi bi-pencil me-1"></i>Optimize
+                    {% elif rec.type == 'supporting_cluster' %}
+                    <i class="bi bi-diagram-3 me-1"></i>Cluster
+                    {% elif rec.type == 'ctr_optimization' %}
+                    <i class="bi bi-cursor me-1"></i>CTR Boost
+                    {% else %}
+                    <i class="bi bi-file-text me-1"></i>{{ rec.type|replace('_', ' ')|title }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ rec.title }}</h6>
+                <p class="small text-muted mb-2">
+                    <i class="bi bi-search me-1"></i>Keyword: <strong>{{ rec.keyword }}</strong>
+                </p>
+                <p class="small mb-0">{{ rec.reasoning }}</p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('create_brief', keyword=rec.keyword) }}"
+                   class="btn btn-sm btn-outline-primary w-100">
+                    <i class="bi bi-plus-circle me-1"></i>Create Brief
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% elif not has_gsc and not existing_content %}
+<div class="alert alert-light border">
+    <h5 class="alert-heading">Get started</h5>
+    <p class="mb-0">Create some content briefs and connect Google Search Console to receive AI-powered content strategy recommendations.</p>
+</div>
+{% endif %}
+
+<!-- Summary Stats -->
+{% if performance or existing_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Overview</h5>
+    </div>
+    {% if performance %}
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ performance.totals.clicks }}</h3>
+                <small class="text-muted">Total Clicks (28d)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ performance.totals.impressions }}</h3>
+                <small class="text-muted">Impressions (28d)</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if opportunities %}
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{{ opportunities|length }}</h3>
+                <small class="text-muted">Keyword Opportunities</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ existing_content|length }}</h3>
+                <small class="text-muted">Content Pieces</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if opportunities %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>Top Keyword Opportunities</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Query</th>
+                    <th class="text-end">Impressions</th>
+                    <th class="text-end">Position</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for opp in opportunities[:10] %}
+                <tr>
+                    <td>{{ opp.query }}</td>
+                    <td class="text-end">{{ opp.impressions }}</td>
+                    <td class="text-end">
+                        <span class="badge bg-{{ 'success' if opp.position <= 10 else 'warning' }}">{{ opp.position }}</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('create_brief', keyword=opp.query) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Brief
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

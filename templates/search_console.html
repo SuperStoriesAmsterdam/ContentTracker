@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Search Console - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Search Console</h2>
+</div>
+
+<!-- Site Selection -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Select Website</h5>
+        {% if sites %}
+        <form method="POST" action="{{ url_for('set_search_console_site') }}" class="row g-3 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="col-md-8">
+                <select name="site_url" class="form-select">
+                    <option value="">-- Select a site --</option>
+                    {% for site in sites %}
+                    <option value="{{ site }}" {% if site == selected_site %}selected{% endif %}>
+                        {{ site }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-muted mb-0">
+            No sites found. Make sure you have access to sites in 
+            <a href="https://search.google.com/search-console" target="_blank">Google Search Console</a>.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+{% if performance %}
+<!-- Totals -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ performance.totals.clicks }}</h3>
+                <p class="text-muted mb-0">Total Clicks (28 days)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ performance.totals.impressions }}</h3>
+                <p class="text-muted mb-0">Total Impressions (28 days)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Keyword Opportunities -->
+{% if opportunities %}
+<div class="card mb-4 border-warning">
+    <div class="card-header bg-warning bg-opacity-10">
+        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>Keyword Opportunities (Positions 5-20)</h5>
+        <small class="text-muted">Low-hanging fruit — you're close to page 1 for these queries</small>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Query</th>
+                    <th class="text-end">Impressions</th>
+                    <th class="text-end">Clicks</th>
+                    <th class="text-end">Position</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for opp in opportunities[:15] %}
+                <tr>
+                    <td><strong>{{ opp.query }}</strong></td>
+                    <td class="text-end">{{ opp.impressions }}</td>
+                    <td class="text-end">{{ opp.clicks }}</td>
+                    <td class="text-end">
+                        <span class="badge bg-{{ 'success' if opp.position <= 10 else 'warning' }}">
+                            {{ opp.position }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('create_brief', keyword=opp.query) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Create Brief
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top Queries -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Top Search Queries</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Query</th>
+                    <th class="text-end">Clicks</th>
+                    <th class="text-end">Impressions</th>
+                    <th class="text-end">CTR</th>
+                    <th class="text-end">Position</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in performance.rows %}
+                <tr>
+                    <td>{{ row.query }}</td>
+                    <td class="text-end">{{ row.clicks }}</td>
+                    <td class="text-end">{{ row.impressions }}</td>
+                    <td class="text-end">{{ row.ctr }}%</td>
+                    <td class="text-end">{{ row.position }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Top Pages -->
+{% if pages %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Top Pages</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Page</th>
+                    <th class="text-end">Clicks</th>
+                    <th class="text-end">Impressions</th>
+                    <th class="text-end">CTR</th>
+                    <th class="text-end">Position</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in pages[:20] %}
+                <tr>
+                    <td>
+                        <a href="{{ page.page }}" target="_blank" class="text-truncate d-inline-block" style="max-width: 400px;">
+                            {{ page.page }}
+                        </a>
+                    </td>
+                    <td class="text-end">{{ page.clicks }}</td>
+                    <td class="text-end">{{ page.impressions }}</td>
+                    <td class="text-end">{{ page.ctr }}%</td>
+                    <td class="text-end">{{ page.position }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% elif selected_site %}
+<div class="alert alert-info">
+    Loading data for {{ selected_site }}... If this persists, there may be no data available yet.
+</div>
+{% else %}
+<div class="alert alert-info">
+    Select a website above to view search performance data.
+</div>
+{% endif %}
+{% endblock %}

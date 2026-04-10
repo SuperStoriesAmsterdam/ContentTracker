@@ -1,0 +1,12 @@
+services:
+  contenttracker:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      # Mount the data folder so the SQLite database and uploads persist
+      # across container restarts. Do the same in Coolify via volume settings.
+      - ./data:/app/data
+    restart: unless-stopped

@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}{{ content.h1 or 'Content' }} - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-file-earmark-text me-2"></i>
+        {{ content.h1 or content.meta_title or 'Generated Content' }}
+    </h2>
+    <div>
+        <a href="{{ url_for('derive_social', content_id=content.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-share me-2"></i>Derive Social
+        </a>
+        <a href="{{ url_for('workspace') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Quotable Snippet Preview (for LLM citation) -->
+        {% if content.quotable_snippet %}
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-quote me-2"></i>Quotable Snippet (LLM Citation Preview)
+            </div>
+            <div class="card-body">
+                <blockquote class="blockquote mb-0">
+                    <p class="mb-2">"{{ content.quotable_snippet }}"</p>
+                </blockquote>
+                <div class="mt-3 p-2 bg-light rounded small">
+                    <strong>How LLMs might cite this:</strong><br>
+                    <span class="text-muted">
+                        According to {{ client.author_name or client.name }}, "{{ content.quotable_snippet[:100] }}..."
+                        {% if client.search_console_site %}
+                        [Source: {{ client.search_console_site }}]
+                        {% endif %}
+                    </span>
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyToClipboard('quotableSnippet', this)">
+                    <i class="bi bi-clipboard me-1"></i>Copy Snippet
+                </button>
+                <span id="quotableSnippet" style="display:none;">{{ content.quotable_snippet }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Meta Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-tag me-2"></i>Meta Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small text-muted">Meta Title</label>
+                        <div class="p-2 bg-light rounded" id="metaTitle">{{ content.meta_title or 'Not set' }}</div>
+                        <small class="text-muted">{{ (content.meta_title|length) if content.meta_title else 0 }} characters</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small text-muted">Meta Description</label>
+                        <div class="p-2 bg-light rounded" id="metaDesc">{{ content.meta_description or 'Not set' }}</div>
+                        <small class="text-muted">{{ (content.meta_description|length) if content.meta_description else 0 }} characters</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-text me-2"></i>Content</span>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('contentBody', this)">
+                        <i class="bi bi-clipboard me-1"></i>Copy Markdown
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="content-preview" id="contentBody">{{ content.body or 'No content' }}</div>
+            </div>
+        </div>
+
+        <!-- Schema JSON-LD -->
+        {% if content.schema_json %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-code-slash me-2"></i>Schema JSON-LD</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('schemaJson', this)">
+                    <i class="bi bi-clipboard me-1"></i>Copy Schema
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <pre class="schema-output mb-0 p-3" id="schemaJson">{{ content.schema_json }}</pre>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if content.internal_links_suggested %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-link-45deg me-2"></i>Suggested Internal Links
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    {% for link in content.internal_links_suggested %}
+                    <li>{{ link }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Derived Social Content -->
+        {% if derived_content %}
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-share me-2"></i>Derived Social Posts
+            </div>
+            <div class="card-body">
+                {% for post in derived_content %}
+                <div class="mb-3 pb-3 border-bottom">
+                    <span class="badge bg-{{ 'primary' if post.platform == 'linkedin' else 'danger' }} mb-2">
+                        {{ post.get_platform_display() }}
+                    </span>
+                    <div class="small" style="white-space: pre-wrap;">{{ post.content }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- SEO Checks (only show for SEO content) -->
+        {% if seo_checks %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-check2-circle me-2"></i>SEO & Citability Checks
+            </div>
+            <div class="card-body">
+                {% for key, check in seo_checks.items() %}
+                <div class="seo-check {{ 'pass' if check.passed else ('warning' if check.severity == 'warning' else 'fail') }} mb-2">
+                    {% if check.passed %}
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    {% elif check.severity == 'warning' %}
+                    <i class="bi bi-exclamation-circle-fill text-warning"></i>
+                    {% elif check.severity == 'info' %}
+                    <i class="bi bi-info-circle-fill text-info"></i>
+                    {% else %}
+                    <i class="bi bi-x-circle-fill text-danger"></i>
+                    {% endif %}
+                    <div class="ms-2">
+                        <strong>{{ check.name }}</strong>
+                        <div class="small text-muted">{{ check.description }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Content Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Content Info
+            </div>
+            <div class="card-body">
+                <p><strong>Type:</strong> {{ content.content_type }}</p>
+                {% if brief %}
+                <p><strong>Track:</strong> {{ brief.get_content_track_display() if brief.content_track else 'SEO' }}</p>
+                {% endif %}
+                <p><strong>Created:</strong> {{ content.created_at[:16] if content.created_at else 'N/A' }}</p>
+                <p><strong>Word Count:</strong> {{ content.body.split()|length if content.body else 0 }}</p>
+                {% if brief %}
+                <p><strong>Brief:</strong> {{ brief.title }}</p>
+                {% endif %}
+                {% if content.google_doc_url %}
+                <p><strong>Google Doc:</strong> <a href="{{ content.google_doc_url }}" target="_blank">Open</a></p>
+                {% endif %}
+
+                <hr>
+                <label class="form-label small text-muted"><strong>Published URL</strong></label>
+                {% if content.published_url %}
+                <div class="d-flex align-items-center mb-2">
+                    <a href="{{ content.published_url }}" target="_blank" class="text-truncate me-2" style="max-width: 200px;">
+                        {{ content.published_url }}
+                    </a>
+                </div>
+                <form method="POST" action="{{ url_for('set_published_url', content_id=content.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="remove_url" value="1">
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                        <i class="bi bi-x-circle me-1"></i>Remove URL
+                    </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('set_published_url', content_id=content.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="input-group input-group-sm">
+                        <input type="url" class="form-control" name="published_url"
+                               placeholder="https://example.com/article">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Set to track search performance</div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Search Performance (shown if published_url is set and data available) -->
+        {% if search_performance and search_performance.rows %}
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-info bg-opacity-10">
+                <i class="bi bi-graph-up me-2"></i>Search Performance
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-3">
+                    <div class="col-6">
+                        <h4 class="text-primary mb-0">{{ search_performance.totals.clicks }}</h4>
+                        <small class="text-muted">Clicks</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-primary mb-0">{{ search_performance.totals.impressions }}</h4>
+                        <small class="text-muted">Impressions</small>
+                    </div>
+                </div>
+                <h6 class="small text-muted mb-2">Top Queries for this URL</h6>
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th class="small">Query</th>
+                            <th class="small text-end">Pos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in search_performance.rows[:10] %}
+                        <tr>
+                            <td class="small">{{ row.query }}</td>
+                            <td class="small text-end">{{ row.position }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Export Options -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-download me-2"></i>Export Options
+            </div>
+            <div class="card-body">
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="copyToClipboard('contentBody', this)">
+                    <i class="bi bi-markdown me-2"></i>Copy Markdown
+                </button>
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="copyPlainText()">
+                    <i class="bi bi-file-text me-2"></i>Copy Plain Text
+                </button>
+                {% if content.schema_json %}
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="copyToClipboard('schemaJson', this)">
+                    <i class="bi bi-braces me-2"></i>Copy Schema JSON-LD
+                </button>
+                {% endif %}
+                <a href="{{ url_for('export_to_google', content_id=content.id) }}" class="btn btn-outline-success w-100">
+                    <i class="bi bi-google me-2"></i>Export to Google Docs
+                </a>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-body">
+                <a href="{{ url_for('derive_social', content_id=content.id) }}" 
+                   class="btn btn-primary w-100 mb-2">
+                    <i class="bi bi-share me-2"></i>Derive Social Posts
+                </a>
+                <form method="POST" action="{{ url_for('delete_content', content_id=content.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-outline-danger w-100"
+                            onclick="return confirm('Delete this content?')">
+                        <i class="bi bi-trash me-2"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyPlainText() {
+    const content = document.getElementById('contentBody').innerText;
+    // Basic markdown removal
+    const plainText = content
+        .replace(/^#+\s*/gm, '')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1');
+    
+    navigator.clipboard.writeText(plainText).then(() => {
+        alert('Plain text copied!');
+    });
+}
+</script>
+{% endblock %}

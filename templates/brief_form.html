@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if brief else 'New' }} Brief - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-file-text me-2"></i>
+        {{ 'Edit' if brief else 'New' }} Content Brief
+    </h2>
+    <a href="{{ url_for('briefs_list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back
+    </a>
+</div>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Content Track Selection -->
+            <div class="form-section">
+                <h5 class="form-section-title">Content Track</h5>
+                <div class="btn-group w-100 mb-3" role="group">
+                    {% for value, label in content_tracks %}
+                    <input type="radio" class="btn-check" name="content_track" id="track_{{ value }}" 
+                           value="{{ value }}"
+                           {% if (brief and brief.content_track == value) or (not brief and value == 'seo') %}checked{% endif %}
+                           onchange="toggleTrackFields()">
+                    <label class="btn btn-outline-primary" for="track_{{ value }}">
+                        {% if value == 'seo' %}
+                        <i class="bi bi-search me-1"></i>
+                        {% else %}
+                        <i class="bi bi-lightbulb me-1"></i>
+                        {% endif %}
+                        {{ label }}
+                    </label>
+                    {% endfor %}
+                </div>
+                <p class="text-muted small" id="track_description">
+                    <span id="seo_desc">SEO content is optimized for search engines and LLM citation. Best for website articles, landing pages, and FAQ content.</span>
+                    <span id="tl_desc" style="display:none;">Thought leadership content is personal, opinionated, and insight-driven. Best for Substack, LinkedIn essays, and personal brand building.</span>
+                </p>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="form-section">
+                <h5 class="form-section-title">Basic Information</h5>
+                
+                <div class="mb-3">
+                    <label for="title" class="form-label">Brief Title *</label>
+                    <input type="text" class="form-control" id="title" name="title" required
+                           value="{{ brief.title if brief else '' }}"
+                           placeholder="e.g., Why Transformation Isn't About Fixing">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="content_type" class="form-label">Content Type *</label>
+                        <select class="form-select" id="content_type" name="content_type" required>
+                            {% for value, label in content_types %}
+                            <option value="{{ value }}" 
+                                    {% if brief and brief.content_type == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="language" class="form-label">Language *</label>
+                        <select class="form-select" id="language" name="language" required>
+                            {% for value, label in languages %}
+                            <option value="{{ value }}" 
+                                    {% if brief and brief.language == value %}selected{% endif %}
+                                    {% if not brief and value == 'en' %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="target_icp" class="form-label">Target Reader</label>
+                    <input type="text" class="form-control" id="target_icp" name="target_icp"
+                           value="{{ brief.target_icp if brief else '' }}"
+                           placeholder="e.g., Therapists interested in transformational methods">
+                </div>
+            </div>
+
+            <!-- SEO Fields (shown for SEO track) -->
+            <div class="form-section seo-fields">
+                <h5 class="form-section-title"><i class="bi bi-search me-2"></i>SEO & LLM Optimization</h5>
+                
+                <div class="mb-3">
+                    <label for="answer_target" class="form-label">Answer Target (Question to Answer)</label>
+                    <input type="text" class="form-control" id="answer_target" name="answer_target"
+                           value="{{ brief.answer_target if brief else '' }}"
+                           placeholder="e.g., What is Core Transformation and how does it work?">
+                    <div class="form-text">The specific question this content should definitively answer for LLM citation</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="primary_keyword" class="form-label">Primary Keyword</label>
+                    <input type="text" class="form-control" id="primary_keyword" name="primary_keyword"
+                           value="{{ prefill_keyword or (brief.primary_keyword if brief else '') }}"
+                           placeholder="e.g., core transformation method">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="secondary_keywords" class="form-label">Secondary Keywords</label>
+                    <textarea class="form-control" id="secondary_keywords" name="secondary_keywords" rows="2"
+                              placeholder="One keyword per line">{{ brief.secondary_keywords|join('\n') if brief and brief.secondary_keywords else '' }}</textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="search_intent" class="form-label">Search Intent</label>
+                        <select class="form-select" id="search_intent" name="search_intent">
+                            {% for value, label in search_intents %}
+                            <option value="{{ value }}" 
+                                    {% if brief and brief.search_intent == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="word_count_target" class="form-label">Target Word Count</label>
+                        <input type="number" class="form-control" id="word_count_target" name="word_count_target"
+                               value="{{ brief.word_count_target if brief else 1500 }}" min="200" max="5000">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="cta" class="form-label">Call-to-Action</label>
+                    <input type="text" class="form-control" id="cta" name="cta"
+                           value="{{ brief.cta if brief else '' }}"
+                           placeholder="e.g., Download the free guide, Schedule a session">
+                </div>
+            </div>
+
+            <!-- Thought Leadership Fields (shown for TL track) -->
+            <div class="form-section tl-fields" style="display:none;">
+                <h5 class="form-section-title"><i class="bi bi-lightbulb me-2"></i>Thought Leadership</h5>
+                
+                <div class="mb-3">
+                    <label for="core_thesis" class="form-label">Core Thesis / Standpoint *</label>
+                    <textarea class="form-control" id="core_thesis" name="core_thesis" rows="3"
+                              placeholder="What is the main point you want to make? What do you believe that others might not?">{{ brief.core_thesis if brief else '' }}</textarea>
+                    <div class="form-text">The central insight or argument of your piece</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="contrarian_angle" class="form-label">What Makes This Contrarian/Surprising?</label>
+                    <textarea class="form-control" id="contrarian_angle" name="contrarian_angle" rows="2"
+                              placeholder="Most people think X, but actually Y...">{{ brief.contrarian_angle if brief else '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="personal_story_prompt" class="form-label">Personal Story / Experience to Include</label>
+                    <textarea class="form-control" id="personal_story_prompt" name="personal_story_prompt" rows="3"
+                              placeholder="Describe a moment, client case, or personal experience that illustrates your point...">{{ brief.personal_story_prompt if brief else '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="emotional_intent" class="form-label">Emotional Intent</label>
+                    <select class="form-select" id="emotional_intent" name="emotional_intent">
+                        <option value="">-- Select --</option>
+                        {% for value, label in emotional_intents %}
+                        <option value="{{ value }}" 
+                                {% if brief and brief.emotional_intent == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">What should readers feel after reading?</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="call_to_think" class="form-label">Call to Think</label>
+                    <textarea class="form-control" id="call_to_think" name="call_to_think" rows="2"
+                              placeholder="What should readers think differently after reading this?">{{ brief.call_to_think if brief else '' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Content Instructions (both tracks) -->
+            <div class="form-section">
+                <h5 class="form-section-title">Content Instructions</h5>
+                
+                <div class="mb-3">
+                    <label for="must_include" class="form-label">Must Include</label>
+                    <textarea class="form-control" id="must_include" name="must_include" rows="3"
+                              placeholder="Topics, points, or specific content that must be covered...">{{ brief.must_include|join('\n') if brief and brief.must_include else '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="must_avoid" class="form-label">Must Avoid</label>
+                    <textarea class="form-control" id="must_avoid" name="must_avoid" rows="2"
+                              placeholder="Topics, approaches, or phrases to avoid...">{{ brief.must_avoid|join('\n') if brief and brief.must_avoid else '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="special_instructions" class="form-label">Special Instructions</label>
+                    <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3"
+                              placeholder="Any additional guidance...">{{ brief.special_instructions if brief else '' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Voice Material (both tracks) -->
+            <div class="form-section">
+                <h5 class="form-section-title">Voice Material</h5>
+                
+                <div class="mb-3">
+                    <label for="fresh_transcript" class="form-label">Fresh Material (Optional)</label>
+                    <textarea class="form-control" id="fresh_transcript" name="fresh_transcript" rows="5"
+                              placeholder="Paste a new transcript, interview notes, or raw ideas here...">{{ brief.fresh_transcript if brief else '' }}</textarea>
+                    <div class="form-text">New voice material specific to this brief</div>
+                </div>
+                
+                {% if voice_snippets %}
+                <div class="mb-3">
+                    <label class="form-label">Voice Bank Selection</label>
+                    <div class="form-text mb-2">Select existing voice material to inform the content</div>
+                    {% for snippet in voice_snippets %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" 
+                               name="voice_snippets" value="{{ snippet.id }}"
+                               id="snippet_{{ snippet.id }}"
+                               {% if brief and snippet.id in brief.get_voice_snippet_ids() %}checked{% endif %}>
+                        <label class="form-check-label" for="snippet_{{ snippet.id }}">
+                            <strong>{{ snippet.title }}</strong>
+                            <span class="text-muted small">- {{ snippet.source or 'No source' }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    No voice snippets yet. 
+                    <a href="{{ url_for('voice_bank') }}">Add some to the Voice Bank</a>.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card position-sticky" style="top: 1rem;">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">Actions</h6>
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-save me-2"></i>{{ 'Update' if brief else 'Create' }} Brief
+                    </button>
+                    
+                    {% if brief %}
+                    <a href="{{ url_for('export_writing_kit', brief_id=brief.id) }}"
+                       class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>Export Writing Kit
+                    </a>
+                    <hr>
+                    <form action="{{ url_for('delete_brief', brief_id=brief.id) }}" method="POST" class="d-inline w-100">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                onclick="return confirm('Delete this brief?')">
+                            <i class="bi bi-trash me-2"></i>Delete Brief
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-lightbulb me-2"></i>Tips</h6>
+                    <ul class="small text-muted mb-0 seo-tips">
+                        <li>Answer Target should be a real question people ask</li>
+                        <li>Primary keyword should match search queries</li>
+                        <li>Select voice snippets for authentic expert voice</li>
+                    </ul>
+                    <ul class="small text-muted mb-0 tl-tips" style="display:none;">
+                        <li>Lead with a strong, specific thesis</li>
+                        <li>Include personal stories for authenticity</li>
+                        <li>Don't try to cover everything—one insight is enough</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+function toggleTrackFields() {
+    const seoTrack = document.getElementById('track_seo').checked;
+    const seoFields = document.querySelectorAll('.seo-fields');
+    const tlFields = document.querySelectorAll('.tl-fields');
+    const seoTips = document.querySelectorAll('.seo-tips');
+    const tlTips = document.querySelectorAll('.tl-tips');
+    const seoDesc = document.getElementById('seo_desc');
+    const tlDesc = document.getElementById('tl_desc');
+    
+    seoFields.forEach(el => el.style.display = seoTrack ? 'block' : 'none');
+    tlFields.forEach(el => el.style.display = seoTrack ? 'none' : 'block');
+    seoTips.forEach(el => el.style.display = seoTrack ? 'block' : 'none');
+    tlTips.forEach(el => el.style.display = seoTrack ? 'none' : 'block');
+    seoDesc.style.display = seoTrack ? 'inline' : 'none';
+    tlDesc.style.display = seoTrack ? 'none' : 'inline';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', toggleTrackFields);
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Content Briefs - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Content Briefs</h1>
+    <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> New Brief
+    </a>
+</div>
+
+{% if briefs %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Primary Keyword</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for brief in briefs %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('edit_brief', brief_id=brief.id) }}">
+                        {{ brief.title }}
+                    </a>
+                </td>
+                <td>
+                    <span class="badge bg-secondary">{{ brief.get_content_type_display() }}</span>
+                </td>
+                <td>{{ brief.primary_keyword or '-' }}</td>
+                <td>{{ brief.created_at[:10] if brief.created_at else '-' }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('export_writing_kit', brief_id=brief.id) }}"
+                           class="btn btn-outline-primary" title="Export Writing Kit">
+                            <i class="bi bi-box-arrow-up-right"></i> Kit
+                        </a>
+                        <a href="{{ url_for('edit_brief', brief_id=brief.id) }}"
+                           class="btn btn-outline-secondary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ url_for('delete_brief', brief_id=brief.id) }}"
+                              method="post" class="d-inline"
+                              onsubmit="return confirm('Delete this brief?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card bg-light">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-file-text display-1 text-muted"></i>
+        <h4 class="mt-3">No Briefs Yet</h4>
+        <p class="text-muted">
+            Create your first content brief to start generating content.
+        </p>
+        <a href="{{ url_for('create_brief') }}" class="btn btn-primary mt-2">
+            Create Your First Brief
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Derive Social - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-share me-2"></i>Derive Social Content
+    </h2>
+    <a href="{{ url_for('view_content', content_id=content.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Content
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <!-- Source Content -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-file-text me-2"></i>Source Content
+            </div>
+            <div class="card-body">
+                <h5>{{ content.h1 or 'Untitled' }}</h5>
+                <div class="content-preview" style="max-height: 300px;">
+                    {{ content.body[:1000] }}{% if content.body|length > 1000 %}...{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Generation Form -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>Generation Settings
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('derive_social', content_id=content.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label for="platform" class="form-label">Platform</label>
+                        <select class="form-select" id="platform" name="platform" required>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="instagram">Instagram</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="author_name" class="form-label">Author Name (for LinkedIn)</label>
+                        <input type="text" class="form-control" id="author_name" name="author_name"
+                               value="{{ client.name }}"
+                               placeholder="e.g., John Smith">
+                    </div>
+                    
+                    {% if voice_snippets %}
+                    <div class="mb-3">
+                        <label class="form-label">Voice Material (optional)</label>
+                        <div class="form-text mb-2">Add authentic voice to make posts more human</div>
+                        {% for snippet in voice_snippets %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="voice_snippet_ids" value="{{ snippet.id }}"
+                                   id="snippet_{{ snippet.id }}">
+                            <label class="form-check-label" for="snippet_{{ snippet.id }}">
+                                {{ snippet.title }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-magic me-2"></i>Generate Post
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <!-- Existing Derived Content -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-collection me-2"></i>Generated Social Posts
+            </div>
+            <div class="card-body">
+                {% if derived_content %}
+                {% for derived in derived_content %}
+                <div class="mb-4 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-{{ 'primary' if derived.platform == 'linkedin' else 'danger' }}">
+                            {{ derived.platform|title }}
+                        </span>
+                        <small class="text-muted">{{ derived.created_at[:16] if derived.created_at else '' }}</small>
+                    </div>
+                    <div class="p-3 bg-light rounded" id="derived_{{ derived.id }}">{{ derived.content }}</div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                onclick="copyToClipboard('derived_{{ derived.id }}', this)">
+                            <i class="bi bi-clipboard me-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-share display-4 mb-3"></i>
+                    <p>No social posts generated yet.</p>
+                    <p class="small">Use the form to create LinkedIn or Instagram posts.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Guidelines Preview -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Client Guidelines
+            </div>
+            <div class="card-body">
+                <h6>LinkedIn</h6>
+                <div class="small text-muted mb-3">
+                    {{ client.linkedin_guidelines[:200] if client.linkedin_guidelines else 'Using default guidelines' }}{% if client.linkedin_guidelines and client.linkedin_guidelines|length > 200 %}...{% endif %}
+                </div>
+                <h6>Instagram</h6>
+                <div class="small text-muted">
+                    {{ client.instagram_guidelines[:200] if client.instagram_guidelines else 'Using default guidelines' }}{% if client.instagram_guidelines and client.instagram_guidelines|length > 200 %}...{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

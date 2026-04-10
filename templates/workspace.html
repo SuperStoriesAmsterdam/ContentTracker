@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.name }} Workspace - SuperStories{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-house-door me-2"></i>{{ client.name }} Workspace</h2>
+    <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>New Content Brief
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-earmark-text me-2"></i>Recent Content</span>
+                <span class="badge bg-secondary">{{ contents|length }} items</span>
+            </div>
+            <div class="card-body">
+                {% if contents %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for content in contents %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('view_content', content_id=content.id) }}">
+                                        {{ content.h1 or content.meta_title or 'Untitled' }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ content.content_type }}</span>
+                                </td>
+                                <td class="text-muted small">{{ content.created_at[:10] if content.created_at else 'N/A' }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_content', content_id=content.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('derive_social', content_id=content.id) }}" 
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-share"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-file-earmark-plus display-4 mb-3"></i>
+                    <p>No content generated yet.</p>
+                    <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
+                        Create Your First Brief
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if briefs %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-file-text me-2"></i>Recent Briefs
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Brief</th>
+                                <th>Type</th>
+                                <th>Keyword</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for brief in briefs[:10] %}
+                            <tr>
+                                <td>{{ brief.title }}</td>
+                                <td><span class="badge bg-light text-dark">{{ brief.content_type }}</span></td>
+                                <td class="text-muted">{{ brief.primary_keyword or '-' }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_brief', brief_id=brief.id) }}"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Client Info
+            </div>
+            <div class="card-body">
+                <p><strong>Tone:</strong> {{ client.tone or 'Not set' }}</p>
+                <p><strong>Target Audience:</strong> {{ client.target_audience or 'Not set' }}</p>
+                {% if client.is_thought_leadership %}
+                <span class="badge bg-info">Thought Leadership Mode</span>
+                {% endif %}
+                <hr>
+                <a href="{{ url_for('client_settings') }}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-gear me-2"></i>Edit Settings
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-mic me-2"></i>Voice Bank
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">{{ voice_snippets|length }} transcript(s)</p>
+                <a href="{{ url_for('voice_bank') }}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-plus me-2"></i>Manage Voice Bank
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-file-text me-2"></i>Style Resources
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">{{ style_resources|length }} example(s)</p>
+                <a href="{{ url_for('style_resources') }}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-plus me-2"></i>Manage Style Resources
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local secrets — never bake into the image
+.env
+
+# Git
+.git/
+.gitignore
+
+# Database — mounted as a volume in production, not baked into the image
+# (comment this out if you want the seed database included in the image)
+# data/superstories.db
+
+# Replit artifacts
+.replit
+replit.nix
+.upm/

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Google Analytics</h2>
+</div>
+
+<!-- Property Selection -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Select GA4 Property</h5>
+        {% if properties %}
+        <form method="POST" action="{{ url_for('set_analytics_property') }}" class="row g-3 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="col-md-8">
+                <select name="property_id" class="form-select">
+                    <option value="">-- Select a property --</option>
+                    {% for prop in properties %}
+                    <option value="{{ prop.property_id }}" {% if prop.property_id == selected_property %}selected{% endif %}>
+                        {{ prop.account_name }} → {{ prop.property_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-muted mb-0">
+            No GA4 properties found. Make sure you have access to properties in 
+            <a href="https://analytics.google.com" target="_blank">Google Analytics</a>.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+{% if pageviews %}
+<!-- Totals -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ pageviews.totals.pageviews }}</h3>
+                <p class="text-muted mb-0">Total Pageviews (28 days)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ pageviews.totals.users }}</h3>
+                <p class="text-muted mb-0">Total Users (28 days)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Pages -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Top Pages by Pageviews</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Page</th>
+                    <th class="text-end">Pageviews</th>
+                    <th class="text-end">Users</th>
+                    <th class="text-end">Avg. Time (sec)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in pageviews.rows %}
+                <tr>
+                    <td>
+                        <span class="text-truncate d-inline-block" style="max-width: 400px;">
+                            {{ row.page }}
+                        </span>
+                    </td>
+                    <td class="text-end">{{ row.pageviews }}</td>
+                    <td class="text-end">{{ row.users }}</td>
+                    <td class="text-end">{{ row.avg_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif selected_property %}
+<div class="alert alert-info">
+    Loading data... If this persists, there may be no data available yet.
+</div>
+{% else %}
+<div class="alert alert-info">
+    Select a GA4 property above to view analytics data.
+</div>
+{% endif %}
+{% endblock %}

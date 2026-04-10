@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Writing Kit — {{ brief.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Writing Kit</h2>
+            <p class="text-muted mb-0">{{ brief.title }}</p>
+        </div>
+        <a href="{{ url_for('briefs_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Briefs
+        </a>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-clipboard me-2"></i>
+        <strong>How to use:</strong> Click Copy to Clipboard, open Claude Projects, start a new conversation, paste the entire kit, and tell Claude: <em>"Write the article. Use the expert's voice, beliefs, and phrases naturally."</em>
+    </div>
+
+    <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-primary" onclick="copyKit()">
+            <i class="bi bi-clipboard me-2"></i>Copy to Clipboard
+        </button>
+        <span id="copyConfirm" class="text-success align-self-center" style="display:none;">
+            <i class="bi bi-check-circle me-1"></i>Copied!
+        </span>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <pre id="kitContent" class="mb-0" style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; background: none; border: none;">{% autoescape false %}=== SUPERSTORIES WRITING KIT ===
+
+ARTICLE: {{ brief.title }}
+CONTENT TYPE: {{ brief.content_type }}
+PRIMARY KEYWORD: {{ brief.primary_keyword or '' }}
+SECONDARY KEYWORDS: {{ brief.secondary_keywords | join(', ') if brief.secondary_keywords else '' }}
+WORD COUNT TARGET: {{ brief.word_count_target or '' }}
+SEARCH INTENT: {{ brief.search_intent or '' }}
+
+CORE THESIS:
+{{ brief.core_thesis or '' }}
+
+CONTRARIAN ANGLE:
+{{ brief.contrarian_angle or '' }}
+
+CALL TO ACTION:
+{{ brief.cta or '' }}
+
+MUST INCLUDE:
+{% if brief.must_include %}{% for item in brief.must_include %}- {{ item }}
+{% endfor %}{% endif %}
+
+MUST AVOID:
+{% if brief.must_avoid %}{% for item in brief.must_avoid %}- {{ item }}
+{% endfor %}{% endif %}
+
+=== EXPERT VOICE ===
+
+TONE: {{ client.tone or '' }}
+TARGET AUDIENCE: {{ client.target_audience or '' }}
+KEY PHRASES TO USE: {{ client.key_phrases | join(', ') if client.key_phrases else '' }}
+WORDS TO AVOID: {{ client.forbidden_words | join(', ') if client.forbidden_words else '' }}
+
+{% if profile and profile.core_beliefs %}RELEVANT BELIEFS FROM EXPERT PROFILE:
+{% for belief in profile.core_beliefs %}{% if belief.get('approved') %}- {{ belief.text }}
+{% endif %}{% endfor %}
+{% endif %}{% if profile and profile.personal_stories %}RELEVANT PERSONAL STORIES:
+{% for story in profile.personal_stories %}{% if story.get('approved') %}- {{ story.title }}: {{ story.summary }}
+{% endif %}{% endfor %}
+{% endif %}{% if profile and profile.contrarian_positions %}CONTRARIAN POSITIONS:
+{% for position in profile.contrarian_positions %}{% if position.get('approved') %}- {{ position.text }}
+{% endif %}{% endfor %}
+{% endif %}{% if profile and profile.signature_phrases %}SIGNATURE PHRASES (use these naturally):
+{% for phrase in profile.signature_phrases %}{% if phrase.get('approved') %}- "{{ phrase.phrase }}"{% if phrase.get('context') %} — {{ phrase.context }}{% endif %}
+{% endif %}{% endfor %}
+{% endif %}{% if voice_snippets %}=== VOICE EXAMPLES ===
+{% for snippet in voice_snippets %}
+[{{ snippet.title }}]
+{{ snippet.transcript }}
+{% endfor %}
+{% endif %}{% if style_resources %}=== STYLE REFERENCE ===
+{% for resource in style_resources %}
+[{{ resource.title }} — {{ resource.get_resource_type_display() }}]
+{{ resource.content }}
+{% endfor %}
+{% endif %}=== END OF WRITING KIT ===
+Open Claude Projects, start a new conversation, and paste this entire kit.
+Tell Claude: "Write the article. Use the expert's voice, beliefs, and phrases naturally."{% endautoescape %}</pre>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary" onclick="copyKit()">
+            <i class="bi bi-clipboard me-2"></i>Copy to Clipboard
+        </button>
+    </div>
+
+</div>
+
+<script>
+function copyKit() {
+    const text = document.getElementById('kitContent').innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        const confirm = document.getElementById('copyConfirm');
+        confirm.style.display = 'inline';
+        setTimeout(function() { confirm.style.display = 'none'; }, 3000);
+    }).catch(function() {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Copied to clipboard.');
+    });
+}
+</script>
+{% endblock %}
