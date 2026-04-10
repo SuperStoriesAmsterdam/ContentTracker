@@ -698,8 +698,9 @@ def google_connect():
     redirect_after = request.args.get('redirect', url_for('dashboard'))
     session['oauth_redirect'] = redirect_after
 
-    auth_url, state = google_docs_service.get_authorization_url()
+    auth_url, state, code_verifier = google_docs_service.get_authorization_url()
     session['oauth_state'] = state
+    session['oauth_code_verifier'] = code_verifier
 
     return redirect(auth_url)
 
@@ -716,7 +717,8 @@ def oauth_callback():
     
     code = request.args.get('code')
     try:
-        creds = google_docs_service.exchange_code(code)
+        code_verifier = session.pop('oauth_code_verifier', None)
+        creds = google_docs_service.exchange_code(code, code_verifier)
         session['google_credentials'] = creds
 
         # Persist credentials to database so they survive restarts

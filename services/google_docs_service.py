@@ -34,27 +34,27 @@ class GoogleDocsService:
             }
         }
     
-    def get_authorization_url(self, state: str = None) -> Tuple[str, str]:
+    def get_authorization_url(self, state: str = None) -> Tuple[str, str, str]:
         """
         Generate OAuth authorization URL.
-        Returns (auth_url, state)
+        Returns (auth_url, state, code_verifier)
         """
         flow = Flow.from_client_config(
             self.client_config,
             scopes=self.SCOPES,
             redirect_uri=Config.GOOGLE_REDIRECT_URI
         )
-        
+
         auth_url, state = flow.authorization_url(
             access_type='offline',
             include_granted_scopes='true',
             state=state,
             prompt='consent'
         )
-        
-        return auth_url, state
+
+        return auth_url, state, flow.code_verifier
     
-    def exchange_code(self, code: str) -> dict:
+    def exchange_code(self, code: str, code_verifier: str = None) -> dict:
         """
         Exchange authorization code for credentials.
         Returns credentials as dict for storage.
@@ -64,7 +64,8 @@ class GoogleDocsService:
             scopes=self.SCOPES,
             redirect_uri=Config.GOOGLE_REDIRECT_URI
         )
-        
+        flow.code_verifier = code_verifier
+
         flow.fetch_token(code=code)
         credentials = flow.credentials
         
