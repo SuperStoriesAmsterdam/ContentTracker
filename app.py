@@ -124,6 +124,11 @@ def dashboard():
     clients = Client.get_all()
     return render_template('dashboard.html', clients=clients)
 
+@app.route('/manual')
+def manual():
+    """The manual / how-it-works page."""
+    return render_template('manual.html')
+
 @app.route('/client/new', methods=['GET', 'POST'])
 def create_client():
     """Create a new client."""
