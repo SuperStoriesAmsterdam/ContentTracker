@@ -111,6 +111,33 @@ def require_client(f):
     return decorated_function
 
 
+# ==================== SITE AUTH ====================
+
+SITE_PASSWORD = os.environ.get('SITE_PASSWORD', '')
+PUBLIC_ROUTES = {'manual', 'seo_guide', 'site_login', 'static'}
+
+@app.before_request
+def check_site_auth():
+    """Require site password for all routes except /how, /why, and login."""
+    if not SITE_PASSWORD:
+        return  # No password set, everything is open
+    if request.endpoint in PUBLIC_ROUTES:
+        return
+    if session.get('site_authenticated'):
+        return
+    return redirect(url_for('site_login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def site_login():
+    """Site-wide password gate."""
+    if request.method == 'POST':
+        if request.form.get('password') == SITE_PASSWORD:
+            session['site_authenticated'] = True
+            return redirect(url_for('dashboard'))
+        flash('Wrong password.', 'error')
+    return render_template('site_login.html')
+
+
 # ==================== DASHBOARD ROUTES ====================
 
 @app.route('/')
