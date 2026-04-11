@@ -471,22 +471,6 @@
                href="{{ url_for('create_brief') }}">
                 <i class="bi bi-plus-circle"></i>New Brief
             </a>
-            <a class="ct-nav-link {% if request.endpoint == 'expert_profile' %}active{% endif %}"
-               href="{{ url_for('expert_profile') }}">
-                <i class="bi bi-person-badge"></i>Expert Profile
-            </a>
-            <a class="ct-nav-link {% if request.endpoint in ('transcripts_list', 'transcript_add', 'transcript_review') %}active{% endif %}"
-               href="{{ url_for('transcripts_list') }}">
-                <i class="bi bi-mic"></i>Transcripts
-            </a>
-            <a class="ct-nav-link {% if request.endpoint == 'voice_bank' %}active{% endif %}"
-               href="{{ url_for('voice_bank') }}">
-                <i class="bi bi-soundwave"></i>Voice Bank
-            </a>
-            <a class="ct-nav-link {% if request.endpoint == 'style_resources' %}active{% endif %}"
-               href="{{ url_for('style_resources') }}">
-                <i class="bi bi-palette"></i>Style Resources
-            </a>
 
             <div class="ct-sidebar-divider"></div>
             <div class="ct-sidebar-label">Performance</div>

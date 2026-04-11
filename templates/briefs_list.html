@@ -37,10 +37,6 @@
                 <td>{{ brief.created_at[:10] if brief.created_at else '-' }}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <a href="{{ url_for('export_writing_kit', brief_id=brief.id) }}"
-                           class="btn btn-outline-primary" title="Export Writing Kit">
-                            <i class="bi bi-box-arrow-up-right"></i> Kit
-                        </a>
                         <a href="{{ url_for('edit_brief', brief_id=brief.id) }}"
                            class="btn btn-outline-secondary" title="Edit">
                             <i class="bi bi-pencil"></i>

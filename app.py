@@ -16,19 +16,12 @@ from models.database import init_db, get_db_path
 from models.client import Client
 from models.brief import Brief
 from models.content import Content
-from models.voice_snippet import VoiceSnippet
-from models.style_resource import StyleResource
 from models.derived_content import DerivedContent
-from models.expert_profile import ExpertProfile
-from models.transcript import Transcript
 from models.ad_spend import AdSpend, PLATFORMS, CURRENCIES, MONTH_NAMES
 from models.site import Site
 from migrations import run_migrations
 from services.claude_service import ClaudeService
 from services.seo_validator import SEOValidator
-from prompts.expert_profile_extraction import (
-    EXPERT_PROFILE_EXTRACTION_SYSTEM, build_extraction_prompt, parse_claude_extraction
-)
 from services.schema_generator import SchemaGenerator
 from services.content_parser import ContentParser
 from services.google_docs_service import GoogleDocsService
@@ -197,15 +190,11 @@ def workspace():
     client = get_current_client()
     briefs = Brief.get_by_client(client.id)
     contents = Content.get_by_client(client.id, limit=10)
-    voice_snippets = VoiceSnippet.get_by_client(client.id)
-    style_resources_list = StyleResource.get_by_client(client.id)
 
     return render_template('workspace.html',
                          client=client,
                          briefs=briefs,
-                         contents=contents,
-                         voice_snippets=voice_snippets,
-                         style_resources=style_resources_list)
+                         contents=contents)
 
 @app.route('/client/settings', methods=['GET', 'POST'])
 @require_client
@@ -248,11 +237,10 @@ def briefs_list():
 def create_brief():
     """Create a new content brief."""
     client = get_current_client()
-    voice_snippets = VoiceSnippet.get_by_client(client.id)
-    
+
     if request.method == 'POST':
         content_track = request.form.get('content_track', 'seo')
-        
+
         brief = Brief(
             client_id=client.id,
             title=request.form.get('title', '').strip(),
@@ -262,10 +250,9 @@ def create_brief():
             target_icp=request.form.get('target_icp', '').strip(),
             must_include=safe_list_from_textarea(request.form.get('must_include', '')),
             must_avoid=safe_list_from_textarea(request.form.get('must_avoid', '')),
-            special_instructions=request.form.get('special_instructions', '').strip(),
-            fresh_transcript=request.form.get('fresh_transcript', '').strip()
+            special_instructions=request.form.get('special_instructions', '').strip()
         )
-        
+
         # SEO-specific fields
         if content_track == 'seo':
             brief.primary_keyword = request.form.get('primary_keyword', '').strip()
@@ -274,7 +261,7 @@ def create_brief():
             brief.search_intent = request.form.get('search_intent')
             brief.word_count_target = safe_int(request.form.get('word_count_target'), 1500)
             brief.cta = request.form.get('cta', '').strip()
-        
+
         # Thought leadership-specific fields
         if content_track == 'thought_leadership':
             brief.core_thesis = request.form.get('core_thesis', '').strip()
@@ -282,33 +269,27 @@ def create_brief():
             brief.personal_story_prompt = request.form.get('personal_story_prompt', '').strip()
             brief.emotional_intent = request.form.get('emotional_intent')
             brief.call_to_think = request.form.get('call_to_think', '').strip()
-        
-        # Voice snippets
-        snippet_ids = request.form.getlist('voice_snippets')
-        brief.set_voice_snippet_ids([int(sid) for sid in snippet_ids if sid])
-        
+
         if not brief.title:
             flash('Title is required.', 'error')
-            return render_template('brief_form.html', 
-                                 client=client, 
+            return render_template('brief_form.html',
+                                 client=client,
                                  brief=None,
-                                 voice_snippets=voice_snippets,
                                  content_types=Brief.CONTENT_TYPES,
                                  content_tracks=Brief.CONTENT_TRACKS,
                                  languages=Brief.LANGUAGES,
                                  search_intents=Brief.SEARCH_INTENTS,
                                  emotional_intents=Brief.EMOTIONAL_INTENTS)
-        
+
         brief.save()
         flash('Brief created.', 'success')
         return redirect(url_for('briefs_list'))
-    
+
     prefill_keyword = request.args.get('keyword', '')
     return render_template('brief_form.html',
                          client=client,
                          brief=None,
                          prefill_keyword=prefill_keyword,
-                         voice_snippets=voice_snippets,
                          content_types=Brief.CONTENT_TYPES,
                          content_tracks=Brief.CONTENT_TRACKS,
                          languages=Brief.LANGUAGES,
@@ -321,15 +302,14 @@ def edit_brief(brief_id):
     """Edit an existing brief."""
     client = get_current_client()
     brief = Brief.get_by_id(brief_id)
-    voice_snippets = VoiceSnippet.get_by_client(client.id)
-    
+
     if not brief or brief.client_id != client.id:
         flash('Brief not found.', 'error')
         return redirect(url_for('briefs_list'))
-    
+
     if request.method == 'POST':
         content_track = request.form.get('content_track', 'seo')
-        
+
         brief.title = request.form.get('title', brief.title).strip()
         brief.content_type = request.form.get('content_type', brief.content_type)
         brief.content_track = content_track
@@ -338,8 +318,7 @@ def edit_brief(brief_id):
         brief.must_include = safe_list_from_textarea(request.form.get('must_include', ''))
         brief.must_avoid = safe_list_from_textarea(request.form.get('must_avoid', ''))
         brief.special_instructions = request.form.get('special_instructions', '').strip()
-        brief.fresh_transcript = request.form.get('fresh_transcript', '').strip()
-        
+
         # SEO-specific fields
         if content_track == 'seo':
             brief.primary_keyword = request.form.get('primary_keyword', '').strip()
@@ -348,7 +327,7 @@ def edit_brief(brief_id):
             brief.search_intent = request.form.get('search_intent')
             brief.word_count_target = safe_int(request.form.get('word_count_target'), 1500)
             brief.cta = request.form.get('cta', '').strip()
-        
+
         # Thought leadership-specific fields
         if content_track == 'thought_leadership':
             brief.core_thesis = request.form.get('core_thesis', '').strip()
@@ -356,19 +335,14 @@ def edit_brief(brief_id):
             brief.personal_story_prompt = request.form.get('personal_story_prompt', '').strip()
             brief.emotional_intent = request.form.get('emotional_intent')
             brief.call_to_think = request.form.get('call_to_think', '').strip()
-        
-        # Voice snippets
-        snippet_ids = request.form.getlist('voice_snippets')
-        brief.set_voice_snippet_ids([int(sid) for sid in snippet_ids if sid])
-        
+
         brief.save()
         flash('Brief updated.', 'success')
         return redirect(url_for('briefs_list'))
-    
-    return render_template('brief_form.html', 
-                         client=client, 
+
+    return render_template('brief_form.html',
+                         client=client,
                          brief=brief,
-                         voice_snippets=voice_snippets,
                          content_types=Brief.CONTENT_TYPES,
                          content_tracks=Brief.CONTENT_TRACKS,
                          languages=Brief.LANGUAGES,
@@ -536,170 +510,6 @@ def derive_social(content_id):
                          content=content,
                          derived_content=existing_derived,
                          platforms=DerivedContent.PLATFORMS)
-
-
-# ==================== VOICE BANK ROUTES ====================
-
-@app.route('/voice-bank')
-@require_client
-def voice_bank():
-    """Voice bank - manage voice snippets."""
-    client = get_current_client()
-    snippets = VoiceSnippet.get_by_client(client.id)
-    return render_template('voice_bank.html', client=client, snippets=snippets)
-
-@app.route('/voice-bank/add', methods=['GET', 'POST'])
-@require_client
-def add_voice_snippet():
-    """Add a new voice snippet."""
-    client = get_current_client()
-    
-    if request.method == 'POST':
-        snippet = VoiceSnippet(
-            client_id=client.id,
-            title=request.form.get('title', '').strip(),
-            source=request.form.get('source', '').strip(),
-            transcript=request.form.get('transcript', '').strip()
-        )
-        
-        if not snippet.title or not snippet.transcript:
-            flash('Title and transcript are required.', 'error')
-            return render_template('voice_snippet_form.html', client=client, snippet=None)
-        
-        snippet.save()
-        flash('Voice snippet added.', 'success')
-        return redirect(url_for('voice_bank'))
-    
-    return render_template('voice_snippet_form.html', client=client, snippet=None)
-
-@app.route('/voice-bank/<int:snippet_id>/edit', methods=['GET', 'POST'])
-@require_client
-def edit_voice_snippet(snippet_id):
-    """Edit a voice snippet."""
-    client = get_current_client()
-    snippet = VoiceSnippet.get_by_id(snippet_id)
-    
-    if not snippet or snippet.client_id != client.id:
-        flash('Snippet not found.', 'error')
-        return redirect(url_for('voice_bank'))
-    
-    if request.method == 'POST':
-        snippet.title = request.form.get('title', snippet.title).strip()
-        snippet.source = request.form.get('source', snippet.source).strip()
-        snippet.transcript = request.form.get('transcript', snippet.transcript).strip()
-        
-        if not snippet.title or not snippet.transcript:
-            flash('Title and transcript are required.', 'error')
-            return render_template('voice_snippet_form.html', client=client, snippet=snippet)
-        
-        snippet.save()
-        flash('Voice snippet updated.', 'success')
-        return redirect(url_for('voice_bank'))
-    
-    return render_template('voice_snippet_form.html', client=client, snippet=snippet)
-
-@app.route('/voice-bank/<int:snippet_id>/delete', methods=['POST'])
-@require_client
-def delete_voice_snippet(snippet_id):
-    """Delete a voice snippet."""
-    client = get_current_client()
-    snippet = VoiceSnippet.get_by_id(snippet_id)
-    
-    if not snippet or snippet.client_id != client.id:
-        flash('Snippet not found.', 'error')
-        return redirect(url_for('voice_bank'))
-    
-    snippet.delete()
-    flash('Voice snippet deleted.', 'success')
-    return redirect(url_for('voice_bank'))
-
-
-# ==================== STYLE RESOURCES ROUTES ====================
-
-@app.route('/style-resources')
-@require_client
-def style_resources():
-    """Style resources library."""
-    client = get_current_client()
-    resources = StyleResource.get_by_client(client.id)
-    return render_template('style_resources.html', client=client, resources=resources)
-
-@app.route('/style-resources/add', methods=['GET', 'POST'])
-@require_client
-def add_style_resource():
-    """Add a new style resource."""
-    client = get_current_client()
-    
-    if request.method == 'POST':
-        resource = StyleResource(
-            client_id=client.id,
-            resource_type=request.form.get('resource_type'),
-            title=request.form.get('title', '').strip(),
-            content=request.form.get('content', '').strip()
-        )
-        
-        if not resource.title or not resource.content:
-            flash('Title and content are required.', 'error')
-            return render_template('style_resource_form.html', 
-                                 client=client, 
-                                 resource=None,
-                                 resource_types=StyleResource.RESOURCE_TYPES)
-        
-        resource.save()
-        flash('Style resource added.', 'success')
-        return redirect(url_for('style_resources'))
-    
-    return render_template('style_resource_form.html', 
-                         client=client, 
-                         resource=None,
-                         resource_types=StyleResource.RESOURCE_TYPES)
-
-@app.route('/style-resources/<int:resource_id>/edit', methods=['GET', 'POST'])
-@require_client
-def edit_style_resource(resource_id):
-    """Edit a style resource."""
-    client = get_current_client()
-    resource = StyleResource.get_by_id(resource_id)
-    
-    if not resource or resource.client_id != client.id:
-        flash('Resource not found.', 'error')
-        return redirect(url_for('style_resources'))
-    
-    if request.method == 'POST':
-        resource.resource_type = request.form.get('resource_type', resource.resource_type)
-        resource.title = request.form.get('title', resource.title).strip()
-        resource.content = request.form.get('content', resource.content).strip()
-        
-        if not resource.title or not resource.content:
-            flash('Title and content are required.', 'error')
-            return render_template('style_resource_form.html', 
-                                 client=client, 
-                                 resource=resource,
-                                 resource_types=StyleResource.RESOURCE_TYPES)
-        
-        resource.save()
-        flash('Style resource updated.', 'success')
-        return redirect(url_for('style_resources'))
-    
-    return render_template('style_resource_form.html', 
-                         client=client, 
-                         resource=resource,
-                         resource_types=StyleResource.RESOURCE_TYPES)
-
-@app.route('/style-resources/<int:resource_id>/delete', methods=['POST'])
-@require_client
-def delete_style_resource(resource_id):
-    """Delete a style resource."""
-    client = get_current_client()
-    resource = StyleResource.get_by_id(resource_id)
-    
-    if not resource or resource.client_id != client.id:
-        flash('Resource not found.', 'error')
-        return redirect(url_for('style_resources'))
-    
-    resource.delete()
-    flash('Style resource deleted.', 'success')
-    return redirect(url_for('style_resources'))
 
 
 # ==================== GOOGLE OAUTH ROUTES ====================
@@ -1083,281 +893,6 @@ def ad_spend_delete(spend_id):
     entry.delete()
     flash('Spend entry deleted.', 'success')
     return redirect(url_for('ad_spend'))
-
-
-# ==================== EXPERT PROFILE ROUTES ====================
-
-@app.route('/expert-profile')
-@require_client
-def expert_profile():
-    """View the Expert Profile for the current client."""
-    client = get_current_client()
-    profile = ExpertProfile.get_by_client_id(client.id)
-    transcripts = Transcript.get_by_client(client.id)
-    return render_template('expert_profile.html', client=client, profile=profile, transcripts=transcripts)
-
-
-@app.route('/expert-profile/update', methods=['POST'])
-@require_client
-def expert_profile_update():
-    """
-    Edit or delete a single item in the Expert Profile.
-    Expects: category, index, action ('save' or 'delete'), and optionally 'text'.
-    """
-    client = get_current_client()
-    profile = ExpertProfile.get_or_create(client.id)
-
-    category = request.form.get('category')
-    index = safe_int(request.form.get('index'), -1)
-    action = request.form.get('action')
-    new_text = request.form.get('text', '').strip()
-
-    valid_categories = ['core_beliefs', 'personal_stories', 'contrarian_positions',
-                        'signature_phrases', 'topics_of_passion']
-
-    if category not in valid_categories:
-        flash('Invalid category.', 'error')
-        return redirect(url_for('expert_profile'))
-
-    items = getattr(profile, category)
-
-    if action == 'delete' and 0 <= index < len(items):
-        items.pop(index)
-        setattr(profile, category, items)
-        profile.save()
-        flash('Item removed.', 'success')
-
-    elif action == 'save' and 0 <= index < len(items) and new_text:
-        item = items[index]
-        # Update the primary text field depending on category
-        if category == 'personal_stories':
-            item['title'] = new_text
-        elif category == 'signature_phrases':
-            item['phrase'] = new_text
-        elif category == 'topics_of_passion':
-            item['text'] = new_text
-        else:
-            item['text'] = new_text
-        items[index] = item
-        setattr(profile, category, items)
-        profile.save()
-        flash('Item updated.', 'success')
-
-    elif action == 'add' and new_text:
-        # Manual addition — no source transcript, auto-approved
-        if category == 'personal_stories':
-            new_item = {'title': new_text, 'summary': '', 'source_transcript_id': None, 'approved': True}
-        elif category == 'signature_phrases':
-            new_item = {'phrase': new_text, 'context': '', 'source_transcript_id': None, 'approved': True}
-        else:
-            new_item = {'text': new_text, 'source_transcript_id': None, 'approved': True}
-        items.append(new_item)
-        setattr(profile, category, items)
-        profile.save()
-        flash('Item added.', 'success')
-
-    return redirect(url_for('expert_profile'))
-
-
-# ==================== TRANSCRIPT ROUTES ====================
-
-@app.route('/transcripts')
-@require_client
-def transcripts_list():
-    """List all transcripts for the current client."""
-    client = get_current_client()
-    transcripts = Transcript.get_by_client(client.id)
-    return render_template('transcripts_list.html', client=client, transcripts=transcripts)
-
-
-@app.route('/transcripts/add', methods=['GET', 'POST'])
-@require_client
-def transcript_add():
-    """Add a new transcript and run Claude extraction."""
-    client = get_current_client()
-
-    if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        source = request.form.get('source', '').strip()
-        raw_text = request.form.get('raw_text', '').strip()
-
-        if not title or not raw_text:
-            flash('Title and transcript text are required.', 'error')
-            return redirect(url_for('transcript_add'))
-
-        # Save transcript record first
-        transcript = Transcript(
-            client_id=client.id,
-            title=title,
-            source=source or None,
-            raw_text=raw_text,
-            extraction_status='pending'
-        )
-        transcript.save()
-
-        # Call Claude API for extraction (synchronous — user waits 10-20 seconds)
-        try:
-            user_prompt = build_extraction_prompt(raw_text)
-            response = claude_service.client.messages.create(
-                model=claude_service.model,
-                max_tokens=2048,
-                system=EXPERT_PROFILE_EXTRACTION_SYSTEM,
-                messages=[{"role": "user", "content": user_prompt}]
-            )
-            raw_response = response.content[0].text
-            extracted = parse_claude_extraction(raw_response)
-
-            transcript.extracted_json = extracted
-            transcript.extraction_status = 'extracted'
-            transcript.save()
-
-            flash('Extraction complete. Review the items below.', 'success')
-            return redirect(url_for('transcript_review', transcript_id=transcript.id))
-
-        except Exception as error:
-            logger.error(f"Extraction error for transcript {transcript.id}: {error}")
-            flash(f'Extraction failed: {str(error)}', 'error')
-            return redirect(url_for('transcripts_list'))
-
-    return render_template('transcript_add.html', client=client)
-
-
-@app.route('/transcripts/<int:transcript_id>/review')
-@require_client
-def transcript_review(transcript_id):
-    """Card-by-card review of extracted items from a transcript."""
-    client = get_current_client()
-    transcript = Transcript.get_by_id(transcript_id)
-
-    if not transcript or transcript.client_id != client.id:
-        flash('Transcript not found.', 'error')
-        return redirect(url_for('transcripts_list'))
-
-    if not transcript.extracted_json:
-        flash('This transcript has no extracted items to review.', 'error')
-        return redirect(url_for('transcripts_list'))
-
-    items = transcript.get_all_extracted_items()
-    return render_template('transcript_review.html', client=client,
-                           transcript=transcript, items=items)
-
-
-@app.route('/transcripts/<int:transcript_id>/approve', methods=['POST'])
-@require_client
-def transcript_approve(transcript_id):
-    """
-    Merge approved items into the Expert Profile.
-    Receives approved item indices and optional edited text via form POST.
-    Sets extraction_status to 'approved' on the transcript.
-    """
-    client = get_current_client()
-    transcript = Transcript.get_by_id(transcript_id)
-
-    if not transcript or transcript.client_id != client.id:
-        flash('Transcript not found.', 'error')
-        return redirect(url_for('transcripts_list'))
-
-    items = transcript.get_all_extracted_items()
-    approved_indices = request.form.getlist('approved_items')
-    edited_texts = {}
-    for key, value in request.form.items():
-        if key.startswith('edit_'):
-            try:
-                idx = int(key[5:])
-                if value.strip():
-                    edited_texts[idx] = value.strip()
-            except ValueError:
-                pass
-
-    # Build the approved extraction data structure expected by merge_extraction
-    approved_data = {
-        'core_beliefs': [],
-        'personal_stories': [],
-        'contrarian_positions': [],
-        'signature_phrases': [],
-        'topics_of_passion': []
-    }
-
-    for idx_str in approved_indices:
-        try:
-            idx = int(idx_str)
-        except ValueError:
-            continue
-
-        if idx < 0 or idx >= len(items):
-            continue
-
-        item = items[idx]
-        category = item['category']
-        raw = dict(item['raw'])
-        raw['approved'] = True
-
-        # Apply any edited text
-        if idx in edited_texts:
-            if category == 'personal_stories':
-                raw['title'] = edited_texts[idx]
-            elif category == 'signature_phrases':
-                raw['phrase'] = edited_texts[idx]
-            elif category == 'topics_of_passion':
-                raw['topic'] = edited_texts[idx]
-            else:
-                raw['text'] = edited_texts[idx]
-
-        approved_data[category].append(raw)
-
-    # Merge into Expert Profile
-    profile = ExpertProfile.get_or_create(client.id)
-    profile.merge_extraction(approved_data, transcript.id)
-    profile.save()
-
-    # Mark transcript as approved
-    transcript.extraction_status = 'approved'
-    transcript.save()
-
-    approved_count = len(approved_indices)
-    flash(f'{approved_count} item{"s" if approved_count != 1 else ""} added to Expert Profile.', 'success')
-    return redirect(url_for('expert_profile'))
-
-
-@app.route('/transcripts/<int:transcript_id>/delete', methods=['POST'])
-@require_client
-def transcript_delete(transcript_id):
-    """Delete a transcript."""
-    client = get_current_client()
-    transcript = Transcript.get_by_id(transcript_id)
-
-    if not transcript or transcript.client_id != client.id:
-        flash('Transcript not found.', 'error')
-        return redirect(url_for('transcripts_list'))
-
-    transcript.delete()
-    flash('Transcript deleted.', 'success')
-    return redirect(url_for('transcripts_list'))
-
-
-# ==================== WRITING KIT EXPORT ROUTE ====================
-
-@app.route('/briefs/<int:brief_id>/export-kit')
-@require_client
-def export_writing_kit(brief_id):
-    """Generate the Writing Kit for a brief and display it for clipboard copy."""
-    client = get_current_client()
-    brief = Brief.get_by_id(brief_id)
-
-    if not brief or brief.client_id != client.id:
-        flash('Brief not found.', 'error')
-        return redirect(url_for('briefs_list'))
-
-    profile = ExpertProfile.get_by_client_id(client.id)
-    voice_snippets = VoiceSnippet.get_by_client(client.id)
-    style_resources = StyleResource.get_by_client(client.id)
-
-    return render_template('brief_export_kit.html',
-                           client=client,
-                           brief=brief,
-                           profile=profile,
-                           voice_snippets=voice_snippets,
-                           style_resources=style_resources)
 
 
 # ==================== MULTI-SITE ROUTES ====================

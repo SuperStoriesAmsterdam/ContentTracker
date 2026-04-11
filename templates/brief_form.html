@@ -206,42 +206,6 @@
                 </div>
             </div>
 
-            <!-- Voice Material (both tracks) -->
-            <div class="form-section">
-                <h5 class="form-section-title">Voice Material</h5>
-                
-                <div class="mb-3">
-                    <label for="fresh_transcript" class="form-label">Fresh Material (Optional)</label>
-                    <textarea class="form-control" id="fresh_transcript" name="fresh_transcript" rows="5"
-                              placeholder="Paste a new transcript, interview notes, or raw ideas here...">{{ brief.fresh_transcript if brief else '' }}</textarea>
-                    <div class="form-text">New voice material specific to this brief</div>
-                </div>
-                
-                {% if voice_snippets %}
-                <div class="mb-3">
-                    <label class="form-label">Voice Bank Selection</label>
-                    <div class="form-text mb-2">Select existing voice material to inform the content</div>
-                    {% for snippet in voice_snippets %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" 
-                               name="voice_snippets" value="{{ snippet.id }}"
-                               id="snippet_{{ snippet.id }}"
-                               {% if brief and snippet.id in brief.get_voice_snippet_ids() %}checked{% endif %}>
-                        <label class="form-check-label" for="snippet_{{ snippet.id }}">
-                            <strong>{{ snippet.title }}</strong>
-                            <span class="text-muted small">- {{ snippet.source or 'No source' }}</span>
-                        </label>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    No voice snippets yet. 
-                    <a href="{{ url_for('voice_bank') }}">Add some to the Voice Bank</a>.
-                </p>
-                {% endif %}
-            </div>
         </div>
 
         <div class="col-md-4">
@@ -253,11 +217,6 @@
                     </button>
                     
                     {% if brief %}
-                    <a href="{{ url_for('export_writing_kit', brief_id=brief.id) }}"
-                       class="btn btn-success w-100 mb-2">
-                        <i class="bi bi-box-arrow-up-right me-2"></i>Export Writing Kit
-                    </a>
-                    <hr>
                     <form action="{{ url_for('delete_brief', brief_id=brief.id) }}" method="POST" class="d-inline w-100">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <button type="submit" class="btn btn-outline-danger btn-sm w-100"

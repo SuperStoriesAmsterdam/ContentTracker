@@ -109,25 +109,13 @@
             </div>
         </div>
 
-        <!-- Voice Bank -->
-        <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 24px; margin-bottom: 16px;">
-            <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">
-                <i class="bi bi-mic me-2"></i>Voice Bank
-            </div>
-            <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 16px;">{{ voice_snippets|length }} transcript(s)</p>
-            <a href="{{ url_for('voice_bank') }}" class="ct-btn-outline" style="text-decoration: none; display: block; text-align: center; padding: 8px 20px; font-size: 13px;">
-                <i class="bi bi-plus me-2"></i>Manage Voice Bank
-            </a>
-        </div>
-
-        <!-- Style Resources -->
+        <!-- Search Console Quick View -->
         <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 24px;">
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">
-                <i class="bi bi-file-text me-2"></i>Style Resources
+                <i class="bi bi-graph-up me-2"></i>Performance
             </div>
-            <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 16px;">{{ style_resources|length }} example(s)</p>
-            <a href="{{ url_for('style_resources') }}" class="ct-btn-outline" style="text-decoration: none; display: block; text-align: center; padding: 8px 20px; font-size: 13px;">
-                <i class="bi bi-plus me-2"></i>Manage Style Resources
+            <a href="{{ url_for('search_console_dashboard') }}" class="ct-btn-outline" style="text-decoration: none; display: block; text-align: center; padding: 8px 20px; font-size: 13px;">
+                View Search Console
             </a>
         </div>
     </div>

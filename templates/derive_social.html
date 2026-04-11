@@ -50,23 +50,6 @@
                                placeholder="e.g., John Smith">
                     </div>
                     
-                    {% if voice_snippets %}
-                    <div class="mb-3">
-                        <label class="form-label">Voice Material (optional)</label>
-                        <div class="form-text mb-2">Add authentic voice to make posts more human</div>
-                        {% for snippet in voice_snippets %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" 
-                                   name="voice_snippet_ids" value="{{ snippet.id }}"
-                                   id="snippet_{{ snippet.id }}">
-                            <label class="form-check-label" for="snippet_{{ snippet.id }}">
-                                {{ snippet.title }}
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-magic me-2"></i>Generate Post
                     </button>
