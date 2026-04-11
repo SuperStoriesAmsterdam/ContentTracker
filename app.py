@@ -129,6 +129,11 @@ def manual():
     """The manual / how-it-works page."""
     return render_template('manual.html')
 
+@app.route('/seo-guide')
+def seo_guide():
+    """How SEO works — shareable guide for clients and teams."""
+    return render_template('seo_guide.html')
+
 @app.route('/client/new', methods=['GET', 'POST'])
 def create_client():
     """Create a new client."""
