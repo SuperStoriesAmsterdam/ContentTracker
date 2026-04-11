@@ -114,7 +114,7 @@ def require_client(f):
 # ==================== SITE AUTH ====================
 
 SITE_PASSWORD = os.environ.get('SITE_PASSWORD', '')
-PUBLIC_ROUTES = {'manual', 'seo_guide', 'site_login', 'static'}
+PUBLIC_ROUTES = {'manual', 'seo_guide', 'site_login', 'static', 'google_connect', 'oauth_callback'}
 
 @app.before_request
 def check_site_auth():
