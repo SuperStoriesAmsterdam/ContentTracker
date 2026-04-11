@@ -447,11 +447,17 @@
             <span class="ct-topbar-title">The Content Tracker</span>
             <span class="ct-topbar-sub">by SuperStories</span>
         </a>
-        {% if session.client_name %}
-        <span class="ct-topbar-client">
-            <i class="bi bi-grid-3x3-gap me-1"></i>{{ session.client_name }}
-        </span>
-        {% endif %}
+        <div style="display: flex; align-items: center; gap: 24px;">
+            {% if not session.client_id %}
+            <a href="{{ url_for('manual') }}" style="font-size: 13px; color: var(--ct-text-muted); text-decoration: none;">HOW</a>
+            <a href="{{ url_for('seo_guide') }}" style="font-size: 13px; color: var(--ct-text-muted); text-decoration: none;">WHY</a>
+            {% endif %}
+            {% if session.client_name %}
+            <span class="ct-topbar-client">
+                <i class="bi bi-grid-3x3-gap me-1"></i>{{ session.client_name }}
+            </span>
+            {% endif %}
+        </div>
     </div>
 
     <!-- LAYOUT -->

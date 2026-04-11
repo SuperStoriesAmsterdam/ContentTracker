@@ -115,9 +115,16 @@ def require_client(f):
 
 @app.route('/')
 def dashboard():
-    """Main dashboard - client selection."""
+    """Home page — hero + sign in."""
+    if session.get('client_id'):
+        return redirect(url_for('workspace'))
+    return render_template('dashboard.html')
+
+@app.route('/clients')
+def clients_page():
+    """Client selection page."""
     clients = Client.get_all()
-    return render_template('dashboard.html', clients=clients)
+    return render_template('clients.html', clients=clients)
 
 @app.route('/manual')
 def manual():

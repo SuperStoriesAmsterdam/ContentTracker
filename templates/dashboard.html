@@ -8,43 +8,16 @@
     <!-- Hero -->
     <div style="max-width: 600px; margin-bottom: 48px;">
         <h1 style="font-size: 48px; font-weight: 700; line-height: 1.1; margin-bottom: 20px;">Know what to publish next.</h1>
-        <p style="font-size: 16px; color: var(--ct-text-muted); line-height: 1.6; max-width: 480px; margin: 0 auto;">
-            The Content Tracker captures who your expert is, tracks what performs in search, and tells you what to write next — backed by real data, not guesswork.
+        <p style="font-size: 16px; color: var(--ct-text); line-height: 1.6; max-width: 480px; margin: 0 auto;">
+            Tracks what performs in search and tells you what to publish next — backed by real data, not guesswork.
         </p>
     </div>
 
-    {% if clients %}
-    <!-- Client Selection -->
-    <div style="max-width: 400px; width: 100%; margin-bottom: 24px;">
-        <form method="POST" action="{{ url_for('login_client') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="mb-3">
-                <select class="form-select" id="client_id" name="client_id" required>
-                    <option value="">Choose a client...</option>
-                    {% for c in clients %}
-                    <option value="{{ c.id }}">{{ c.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Sign in</button>
-        </form>
-    </div>
+    <!-- Buttons -->
     <div style="display: flex; gap: 12px;">
-        <a href="{{ url_for('create_client') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">+ New client</a>
-        <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">HOW</a>
-        <a href="{{ url_for('seo_guide') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">WHY</a>
+        <a href="{{ url_for('clients_page') }}" class="btn btn-primary" style="padding: 14px 32px; text-decoration: none;">Sign in</a>
+        <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-flex; align-items: center;">Read the manual</a>
     </div>
-    {% else %}
-    <!-- No clients yet -->
-    <div style="max-width: 400px; width: 100%;">
-        <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 24px;">No clients yet. Create your first client to get started.</p>
-        <a href="{{ url_for('create_client') }}" class="btn btn-primary" style="padding: 14px 32px; text-decoration: none;">+ Create your first client</a>
-        <div style="margin-top: 16px;">
-            <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">HOW</a>
-        <a href="{{ url_for('seo_guide') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">WHY</a>
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Footer tagline -->
     <p style="position: fixed; bottom: 24px; font-size: 12px; color: var(--ct-text-light); letter-spacing: 1px; font-style: italic;">

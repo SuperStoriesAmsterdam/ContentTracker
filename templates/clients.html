@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Clients — The Content Tracker{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 53px); padding: 48px; text-align: center;">
+
+    <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 32px;">Choose a client</h1>
+
+    {% if clients %}
+    <div style="max-width: 400px; width: 100%; margin-bottom: 32px;">
+        <form method="POST" action="{{ url_for('login_client') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="mb-3">
+                <select class="form-select" id="client_id" name="client_id" required>
+                    <option value="">Select...</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Enter workspace</button>
+        </form>
+    </div>
+
+    <div style="border-top: 1px solid var(--ct-border); padding-top: 24px; max-width: 400px; width: 100%;">
+        <a href="{{ url_for('create_client') }}" style="font-size: 14px; color: var(--ct-text-muted); text-decoration: none;">+ Add a new client</a>
+    </div>
+    {% else %}
+    <p style="font-size: 16px; color: var(--ct-text); margin-bottom: 24px;">No clients yet.</p>
+    <a href="{{ url_for('create_client') }}" class="btn btn-primary" style="padding: 14px 32px; text-decoration: none;">Create your first client</a>
+    {% endif %}
+
+</div>
+{% endblock %}
