@@ -44,16 +44,18 @@
 {% if opportunities %}
 <div style="background: var(--ct-warning-bg); border: 1px solid #D9CFC0; border-radius: var(--ct-radius-card); margin-bottom: 32px; overflow: hidden;">
     <div style="padding: 16px 24px; border-bottom: 1px solid #D9CFC0;">
-        <div style="font-weight: 600; font-size: 14px;"><i class="bi bi-trophy me-2"></i>Keyword Opportunities (Positions 5-20)</div>
-        <div style="font-size: 13px; color: var(--ct-warning);">Low-hanging fruit — you're close to page 1 for these queries</div>
+        <div style="font-weight: 600; font-size: 14px;"><i class="bi bi-trophy me-2"></i>Keyword Opportunities — sorted by priority</div>
+        <div style="font-size: 13px; color: var(--ct-warning);">High impressions + close to page 1 = highest priority. Write these first.</div>
     </div>
     <table class="ct-table" style="background: var(--ct-bg);">
         <thead>
             <tr>
                 <th>Query</th>
+                <th style="text-align: center;">Zone</th>
                 <th style="text-align: right;">Impressions</th>
                 <th style="text-align: right;">Clicks</th>
                 <th style="text-align: right;">Position</th>
+                <th style="text-align: right;">Priority</th>
                 <th style="text-align: right;">Action</th>
             </tr>
         </thead>
@@ -61,6 +63,11 @@
             {% for opp in opportunities[:15] %}
             <tr>
                 <td style="font-weight: 600;">{{ opp.query }}</td>
+                <td style="text-align: center;">
+                    <span class="ct-badge {% if opp.position <= 10 %}ct-badge-success{% else %}ct-badge-warning{% endif %}" style="font-size: 11px;">
+                        {{ opp.zone_label or ('Almost there' if opp.position <= 10 else 'Quick win') }}
+                    </span>
+                </td>
                 <td style="text-align: right;">{{ opp.impressions }}</td>
                 <td style="text-align: right;">{{ opp.clicks }}</td>
                 <td style="text-align: right;">
@@ -68,10 +75,16 @@
                         {{ opp.position }}
                     </span>
                 </td>
+                <td style="text-align: right; font-weight: 600;">
+                    {% set priority = opp.priority or 0 %}
+                    <span style="color: {% if priority >= 150 %}var(--ct-green){% elif priority >= 100 %}var(--ct-warning){% else %}var(--ct-text-muted){% endif %};">
+                        {{ priority }}
+                    </span>
+                </td>
                 <td style="text-align: right;">
                     <a href="{{ url_for('create_brief', keyword=opp.query) }}"
                        class="ct-btn-outline" style="text-decoration: none; padding: 4px 16px; font-size: 12px;">
-                        <i class="bi bi-plus-circle me-1"></i>Create Brief
+                        <i class="bi bi-plus-circle me-1"></i>Brief
                     </a>
                 </td>
             </tr>

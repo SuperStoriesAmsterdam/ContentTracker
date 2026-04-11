@@ -356,16 +356,35 @@ class GoogleDocsService:
             impressions = row['impressions']
             # Filter: positions 5-20 with at least 10 impressions
             if 5 <= position <= 20 and impressions >= 10:
+                # Priority score: high impressions + close to page 1 = highest priority
+                # Position factor: position 5 scores 1.0, position 20 scores 0.0
+                position_factor = (20 - position) / 15
+                # Normalize impressions (log scale to prevent huge values dominating)
+                import math
+                impression_factor = math.log10(max(impressions, 1))
+                priority_score = round(position_factor * 40 + impression_factor * 60, 1)
+
+                # Zone classification
+                if position <= 10:
+                    zone = 'Zone 2'
+                    zone_label = 'Almost there'
+                else:
+                    zone = 'Zone 3'
+                    zone_label = 'Quick win'
+
                 opportunities.append({
                     'query': row['keys'][0],
                     'clicks': row['clicks'],
                     'impressions': impressions,
                     'ctr': round(row['ctr'] * 100, 2),
-                    'position': round(position, 1)
+                    'position': round(position, 1),
+                    'priority': priority_score,
+                    'zone': zone,
+                    'zone_label': zone_label
                 })
 
-        # Sort by impressions descending (highest opportunity first)
-        opportunities.sort(key=lambda x: x['impressions'], reverse=True)
+        # Sort by priority score descending
+        opportunities.sort(key=lambda x: x['priority'], reverse=True)
         return opportunities
 
     # ===== GOOGLE ANALYTICS METHODS =====
