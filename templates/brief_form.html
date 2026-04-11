@@ -206,6 +206,32 @@
                 </div>
             </div>
 
+            <!-- LLM SEO -->
+            <div class="form-section">
+                <h5 class="form-section-title">LLM SEO — AI Citability</h5>
+
+                {% if client.entity_statement %}
+                <div style="background: var(--ct-bg-muted); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px;">
+                    <strong>Entity statement:</strong> {{ client.entity_statement }}
+                </div>
+                {% else %}
+                <p style="font-size: 13px; color: var(--ct-text-muted); margin-bottom: 16px;">
+                    <i class="bi bi-info-circle me-1"></i>No entity statement set. <a href="{{ url_for('client_settings') }}">Add one in Settings</a> to strengthen AI citation.
+                </p>
+                {% endif %}
+
+                <div style="font-size: 13px; color: var(--ct-text-muted); line-height: 1.6;">
+                    <strong>LLM SEO checklist for this article:</strong>
+                    <ul style="margin-top: 8px; padding-left: 20px;">
+                        <li>Include one clear, citeable expert quote</li>
+                        <li>Use definition → explanation → example → FAQ structure</li>
+                        <li>Name the expert by full name at least once</li>
+                        <li>Add a FAQ section with 3-5 questions</li>
+                        <li>Use the entity statement in the intro or author bio</li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
 
         <div class="col-md-4">

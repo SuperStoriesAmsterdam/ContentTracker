@@ -73,10 +73,22 @@
                 </div>
             </div>
 
+            <!-- LLM SEO -->
+            <div class="form-section">
+                <h5 class="form-section-title">LLM SEO — AI Citation</h5>
+
+                <div class="mb-3">
+                    <label for="entity_statement" class="form-label">Entity Statement</label>
+                    <textarea class="form-control" id="entity_statement" name="entity_statement" rows="2"
+                              placeholder="e.g., Connirae Andreas is the creator of the Core Transformation process and founder of the Wholeness Work method.">{{ client.entity_statement or '' }}</textarea>
+                    <div class="form-text">One definitive sentence that identifies this expert. Included in all briefs to strengthen AI citation and LLM discoverability.</div>
+                </div>
+            </div>
+
             <!-- SEO & Positioning -->
             <div class="form-section">
                 <h5 class="form-section-title">SEO & Positioning</h5>
-                
+
                 <div class="mb-3">
                     <label for="core_keywords" class="form-label">Core Keywords</label>
                     <textarea class="form-control" id="core_keywords" name="core_keywords" rows="4"

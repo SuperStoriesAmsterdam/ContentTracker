@@ -17,6 +17,7 @@ class Client:
         self.instagram_guidelines = kwargs.get('instagram_guidelines')
         self.is_thought_leadership = bool(kwargs.get('is_thought_leadership', 0))
         self.author_name = kwargs.get('author_name')
+        self.entity_statement = kwargs.get('entity_statement')
         self.search_console_site = kwargs.get('search_console_site')
         self.analytics_property_id = kwargs.get('analytics_property_id')
         self.google_credentials = kwargs.get('google_credentials')
@@ -65,28 +66,28 @@ class Client:
                     forbidden_words = ?, target_audience = ?, core_keywords = ?,
                     competitive_differentiation = ?, linkedin_guidelines = ?,
                     instagram_guidelines = ?, is_thought_leadership = ?,
-                    author_name = ?, search_console_site = ?, analytics_property_id = ?,
-                    google_credentials = ?
+                    author_name = ?, entity_statement = ?, search_console_site = ?,
+                    analytics_property_id = ?, google_credentials = ?
                 WHERE id = ?
             ''', (self.name, self.password, self.tone, key_phrases_json,
                   forbidden_words_json, self.target_audience, core_keywords_json,
                   self.competitive_differentiation, self.linkedin_guidelines,
                   self.instagram_guidelines, int(self.is_thought_leadership),
-                  self.author_name, self.search_console_site,
+                  self.author_name, self.entity_statement, self.search_console_site,
                   self.analytics_property_id, self.google_credentials, self.id))
         else:
             cursor.execute('''
                 INSERT INTO clients (name, password, tone, key_phrases, forbidden_words,
                     target_audience, core_keywords, competitive_differentiation,
                     linkedin_guidelines, instagram_guidelines, is_thought_leadership,
-                    author_name, search_console_site, analytics_property_id,
-                    google_credentials)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    author_name, entity_statement, search_console_site,
+                    analytics_property_id, google_credentials)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (self.name, self.password, self.tone, key_phrases_json,
                   forbidden_words_json, self.target_audience, core_keywords_json,
                   self.competitive_differentiation, self.linkedin_guidelines,
                   self.instagram_guidelines, int(self.is_thought_leadership),
-                  self.author_name, self.search_console_site,
+                  self.author_name, self.entity_statement, self.search_console_site,
                   self.analytics_property_id, self.google_credentials))
             self.id = cursor.lastrowid
         

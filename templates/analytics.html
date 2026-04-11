@@ -1,94 +1,118 @@
 {% extends "base.html" %}
 
-{% block title %}Analytics - {{ client.name }}{% endblock %}
+{% block title %}Analytics — {{ client.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Google Analytics</h2>
-</div>
+<h1 class="ct-page-title">Google Analytics</h1>
 
 <!-- Property Selection -->
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">Select GA4 Property</h5>
-        {% if properties %}
-        <form method="POST" action="{{ url_for('set_analytics_property') }}" class="row g-3 align-items-end">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="col-md-8">
-                <select name="property_id" class="form-select">
-                    <option value="">-- Select a property --</option>
-                    {% for prop in properties %}
-                    <option value="{{ prop.property_id }}" {% if prop.property_id == selected_property %}selected{% endif %}>
-                        {{ prop.account_name }} → {{ prop.property_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-        </form>
-        {% else %}
-        <p class="text-muted mb-0">
-            No GA4 properties found. Make sure you have access to properties in 
-            <a href="https://analytics.google.com" target="_blank">Google Analytics</a>.
-        </p>
-        {% endif %}
-    </div>
+<div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 20px 24px; margin-bottom: 32px;">
+    <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">Select GA4 Property</div>
+    {% if properties %}
+    <form method="POST" action="{{ url_for('set_analytics_property') }}" style="display: flex; gap: 12px; align-items: center;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <select name="property_id" class="form-select" style="flex: 1;">
+            <option value="">-- Select a property --</option>
+            {% for prop in properties %}
+            <option value="{{ prop.property_id }}" {% if prop.property_id == selected_property %}selected{% endif %}>
+                {{ prop.account_name }} → {{ prop.property_name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 28px;">Save</button>
+    </form>
+    {% else %}
+    <p style="color: var(--ct-text-muted); font-size: 14px; margin: 0;">
+        No GA4 properties found. Make sure you have access to properties in
+        <a href="https://analytics.google.com" target="_blank">Google Analytics</a>.
+    </p>
+    {% endif %}
 </div>
 
 {% if pageviews %}
-<!-- Totals -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="text-primary">{{ pageviews.totals.pageviews }}</h3>
-                <p class="text-muted mb-0">Total Pageviews (28 days)</p>
-            </div>
-        </div>
+<!-- Stat Cards -->
+<div style="display: grid; grid-template-columns: repeat({% if conversions and conversions.totals.conversions > 0 %}4{% else %}2{% endif %}, 1fr); gap: 16px; margin-bottom: 32px;">
+    <div class="ct-stat-card">
+        <div class="ct-stat-label">Total Pageviews (28 days)</div>
+        <div class="ct-stat-value">{{ "{:,}".format(pageviews.totals.pageviews) }}</div>
     </div>
-    <div class="col-md-6">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="text-primary">{{ pageviews.totals.users }}</h3>
-                <p class="text-muted mb-0">Total Users (28 days)</p>
-            </div>
-        </div>
+    <div class="ct-stat-card">
+        <div class="ct-stat-label">Total Users (28 days)</div>
+        <div class="ct-stat-value">{{ "{:,}".format(pageviews.totals.users) }}</div>
     </div>
+    {% if conversions and conversions.totals.conversions > 0 %}
+    <div class="ct-stat-card" style="border: 1px solid var(--ct-green);">
+        <div class="ct-stat-label">Conversions (28 days)</div>
+        <div class="ct-stat-value" style="color: var(--ct-green);">{{ "{:,}".format(conversions.totals.conversions) }}</div>
+    </div>
+    <div class="ct-stat-card" style="border: 1px solid var(--ct-green);">
+        <div class="ct-stat-label">Conversion Value</div>
+        <div class="ct-stat-value" style="color: var(--ct-green);">{{ "{:,.2f}".format(conversions.totals.value) }}</div>
+    </div>
+    {% endif %}
 </div>
 
+{% if conversions and conversions.rows %}
+<!-- Conversions by Page -->
+<div class="ct-table-wrap" style="margin-bottom: 32px;">
+    <div style="padding: 14px 24px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--ct-border);">
+        <i class="bi bi-cart-check me-2" style="color: var(--ct-green);"></i>Conversions by Page
+    </div>
+    <table class="ct-table">
+        <thead>
+            <tr>
+                <th>Page</th>
+                <th>Event</th>
+                <th style="text-align: right;">Count</th>
+                <th style="text-align: right;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in conversions.rows | sort(attribute='count', reverse=true) %}
+            <tr>
+                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row.page }}</td>
+                <td><span class="ct-badge ct-badge-success" style="font-size: 11px;">{{ row.event }}</span></td>
+                <td style="text-align: right; font-weight: 600;">{{ row.count }}</td>
+                <td style="text-align: right;">{% if row.value > 0 %}{{ "{:,.2f}".format(row.value) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif conversions and conversions.totals.conversions == 0 %}
+<div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 24px; margin-bottom: 32px; text-align: center;">
+    <div style="font-size: 14px; color: var(--ct-text-muted);">
+        <i class="bi bi-info-circle me-2"></i>No conversion events found in the last 28 days.
+        Make sure your website has GA4 conversion events configured (purchase, sign_up, generate_lead, form_submit).
+    </div>
+</div>
+{% endif %}
+
 <!-- Top Pages -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Top Pages by Pageviews</h5>
+<div class="ct-table-wrap">
+    <div style="padding: 14px 24px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--ct-border);">
+        Top Pages by Pageviews
     </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>Page</th>
-                    <th class="text-end">Pageviews</th>
-                    <th class="text-end">Users</th>
-                    <th class="text-end">Avg. Time (sec)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in pageviews.rows %}
-                <tr>
-                    <td>
-                        <span class="text-truncate d-inline-block" style="max-width: 400px;">
-                            {{ row.page }}
-                        </span>
-                    </td>
-                    <td class="text-end">{{ row.pageviews }}</td>
-                    <td class="text-end">{{ row.users }}</td>
-                    <td class="text-end">{{ row.avg_time }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <table class="ct-table">
+        <thead>
+            <tr>
+                <th>Page</th>
+                <th style="text-align: right;">Pageviews</th>
+                <th style="text-align: right;">Users</th>
+                <th style="text-align: right;">Avg. Time (sec)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in pageviews.rows %}
+            <tr>
+                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row.page }}</td>
+                <td style="text-align: right; font-weight: 600;">{{ row.pageviews }}</td>
+                <td style="text-align: right;">{{ row.users }}</td>
+                <td style="text-align: right;">{{ row.avg_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% elif selected_property %}

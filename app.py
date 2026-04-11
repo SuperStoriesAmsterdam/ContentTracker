@@ -19,6 +19,8 @@ from models.content import Content
 from models.derived_content import DerivedContent
 from models.ad_spend import AdSpend, PLATFORMS, CURRENCIES, MONTH_NAMES
 from models.site import Site
+from models.keyword_target import KeywordTarget
+from models.gsc_snapshot import GscSnapshot
 from migrations import run_migrations
 from services.claude_service import ClaudeService
 from services.seo_validator import SEOValidator
@@ -209,6 +211,7 @@ def client_settings():
         client.key_phrases = safe_list_from_textarea(request.form.get('key_phrases', ''))
         client.forbidden_words = safe_list_from_textarea(request.form.get('forbidden_words', ''))
         client.target_audience = request.form.get('target_audience', '').strip()
+        client.entity_statement = request.form.get('entity_statement', '').strip()
         client.core_keywords = safe_list_from_textarea(request.form.get('core_keywords', ''))
         client.competitive_differentiation = request.form.get('competitive_differentiation', '').strip()
         client.linkedin_guidelines = request.form.get('linkedin_guidelines', '').strip()
@@ -640,13 +643,20 @@ def search_console_dashboard():
             pages = google_docs_service.get_page_performance(creds, site_url)
             opportunities = google_docs_service.get_keyword_opportunities(creds, site_url)
 
+        # Get keyword targets and update their GSC status
+        keyword_targets = KeywordTarget.get_by_client(client.id)
+        if performance and keyword_targets:
+            for target in keyword_targets:
+                target.update_from_gsc(performance.get('rows', []))
+
         return render_template('search_console.html',
                              client=client,
                              sites=sites,
                              selected_site=site_url,
                              performance=performance,
                              pages=pages,
-                             opportunities=opportunities)
+                             opportunities=opportunities,
+                             keyword_targets=keyword_targets)
 
     except Exception as e:
         flash(f'Error loading Search Console: {str(e)}', 'error')
@@ -662,6 +672,84 @@ def set_search_console_site():
     client.save()
     flash('Search Console site configured.', 'success')
     return redirect(url_for('search_console_dashboard'))
+
+
+# ==================== KEYWORD TARGETING ROUTES ====================
+
+@app.route('/search-console/keywords/add', methods=['POST'])
+@require_client
+def add_keyword_target():
+    """Add a target keyword for tracking."""
+    client = get_current_client()
+    keyword = request.form.get('keyword', '').strip()
+    zone = int(request.form.get('zone', 3))
+    notes = request.form.get('notes', '').strip()
+
+    if not keyword:
+        flash('Keyword is required.', 'error')
+        return redirect(url_for('search_console_dashboard'))
+
+    target = KeywordTarget(
+        client_id=client.id,
+        keyword=keyword,
+        zone=max(1, min(3, zone)),
+        notes=notes
+    )
+    target.save()
+    flash(f'Target keyword "{keyword}" added (Zone {zone}).', 'success')
+    return redirect(url_for('search_console_dashboard'))
+
+
+@app.route('/search-console/keywords/<int:target_id>/delete', methods=['POST'])
+@require_client
+def delete_keyword_target(target_id):
+    """Delete a target keyword."""
+    client = get_current_client()
+    target = KeywordTarget.get_by_id(target_id)
+
+    if not target or target.client_id != client.id:
+        flash('Target keyword not found.', 'error')
+        return redirect(url_for('search_console_dashboard'))
+
+    target.delete()
+    flash('Target keyword removed.', 'success')
+    return redirect(url_for('search_console_dashboard'))
+
+
+@app.route('/search-console/snapshot', methods=['POST'])
+@require_client
+def take_gsc_snapshot():
+    """Take a snapshot of current GSC data for historical tracking."""
+    client = get_current_client()
+    creds = get_google_credentials()
+
+    if not creds or not client.search_console_site:
+        flash('Connect Google and select a site first.', 'error')
+        return redirect(url_for('search_console_dashboard'))
+
+    try:
+        performance = google_docs_service.get_search_performance(
+            creds, client.search_console_site, days=28)
+        rows = performance.get('rows', [])
+        count = GscSnapshot.take_snapshot(client.id, client.search_console_site, rows)
+
+        if count > 0:
+            flash(f'Snapshot saved — {count} keywords recorded.', 'success')
+        else:
+            flash('Snapshot already taken today.', 'info')
+    except Exception as e:
+        flash(f'Snapshot failed: {str(e)}', 'error')
+
+    return redirect(url_for('search_console_dashboard'))
+
+
+@app.route('/search-console/trajectory/<path:keyword>')
+@require_client
+def keyword_trajectory(keyword):
+    """Get trajectory data for a keyword (JSON for charts)."""
+    client = get_current_client()
+    data = GscSnapshot.get_trajectory(client.id, keyword)
+    return jsonify(data)
 
 
 # ==================== ANALYTICS ROUTES ====================
@@ -682,14 +770,17 @@ def analytics_dashboard():
         property_id = client.analytics_property_id
         pageviews = None
         
+        conversions = None
         if property_id:
             pageviews = google_docs_service.get_analytics_pageviews(creds, property_id)
-        
+            conversions = google_docs_service.get_analytics_conversions(creds, property_id)
+
         return render_template('analytics.html',
                              client=client,
                              properties=properties,
                              selected_property=property_id,
-                             pageviews=pageviews)
+                             pageviews=pageviews,
+                             conversions=conversions)
     
     except Exception as e:
         flash(f'Error loading Analytics: {str(e)}', 'error')

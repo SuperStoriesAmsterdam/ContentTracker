@@ -481,3 +481,66 @@ class GoogleDocsService:
                 'users': sum(r['users'] for r in rows)
             }
         }
+
+    def get_analytics_conversions(self, creds_dict: dict, property_id: str,
+                                   days: int = 28) -> Dict:
+        """
+        Get conversion events from GA4 grouped by page.
+        Returns pages that triggered key events (purchases, signups, etc.)
+        """
+        credentials = self.get_credentials(creds_dict)
+        service = build('analyticsdata', 'v1beta', credentials=credentials)
+
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+
+        try:
+            response = service.properties().runReport(
+                property=f'properties/{property_id}',
+                body={
+                    'dateRanges': [{
+                        'startDate': start_date.strftime('%Y-%m-%d'),
+                        'endDate': end_date.strftime('%Y-%m-%d')
+                    }],
+                    'dimensions': [
+                        {'name': 'pagePath'},
+                        {'name': 'eventName'}
+                    ],
+                    'metrics': [
+                        {'name': 'eventCount'},
+                        {'name': 'eventValue'}
+                    ],
+                    'dimensionFilter': {
+                        'filter': {
+                            'fieldName': 'eventName',
+                            'inListFilter': {
+                                'values': ['purchase', 'sign_up', 'generate_lead',
+                                           'begin_checkout', 'add_to_cart', 'form_submit']
+                            }
+                        }
+                    },
+                    'limit': 100
+                }
+            ).execute()
+
+            rows = []
+            for row in response.get('rows', []):
+                rows.append({
+                    'page': row['dimensionValues'][0]['value'],
+                    'event': row['dimensionValues'][1]['value'],
+                    'count': int(row['metricValues'][0]['value']),
+                    'value': round(float(row['metricValues'][1]['value']), 2)
+                })
+
+            total_conversions = sum(r['count'] for r in rows)
+            total_value = sum(r['value'] for r in rows)
+
+            return {
+                'rows': rows,
+                'totals': {
+                    'conversions': total_conversions,
+                    'value': total_value
+                }
+            }
+        except Exception:
+            return {'rows': [], 'totals': {'conversions': 0, 'value': 0}}

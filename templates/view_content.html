@@ -209,6 +209,44 @@
                     <div class="form-text">Set to track search performance</div>
                 </form>
                 {% endif %}
+
+                {% if content.published_url %}
+                <!-- UTM Distribution Links -->
+                <hr>
+                <label class="form-label small text-muted"><strong>Distribution Links (UTM tagged)</strong></label>
+                <div style="font-size: 12px; color: var(--ct-text-muted); margin-bottom: 8px;">Click to copy. Use these when sharing — they track which channel brings traffic.</div>
+                {% set slug = client.name | lower | replace(' ', '-') %}
+                {% set campaign = slug ~ '-' ~ content.created_at[:10] ~ '-' ~ (content.h1 or 'article') | lower | replace(' ', '-') | truncate(30, true, '') %}
+                {% set base = content.published_url %}
+                {% set sep = '&' if '?' in base else '?' %}
+
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 70px; font-size: 11px; font-weight: 600; color: var(--ct-text-muted);">Email</span>
+                        <input type="text" class="form-control form-control-sm" readonly id="utm-email"
+                               value="{{ base }}{{ sep }}utm_source=newsletter&utm_medium=email&utm_campaign={{ campaign }}"
+                               style="font-size: 11px; cursor: pointer;" onclick="this.select(); navigator.clipboard.writeText(this.value); this.style.borderColor='var(--ct-green)';">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 70px; font-size: 11px; font-weight: 600; color: var(--ct-text-muted);">LinkedIn</span>
+                        <input type="text" class="form-control form-control-sm" readonly id="utm-linkedin"
+                               value="{{ base }}{{ sep }}utm_source=linkedin&utm_medium=social&utm_campaign={{ campaign }}"
+                               style="font-size: 11px; cursor: pointer;" onclick="this.select(); navigator.clipboard.writeText(this.value); this.style.borderColor='var(--ct-green)';">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 70px; font-size: 11px; font-weight: 600; color: var(--ct-text-muted);">Twitter/X</span>
+                        <input type="text" class="form-control form-control-sm" readonly id="utm-twitter"
+                               value="{{ base }}{{ sep }}utm_source=twitter&utm_medium=social&utm_campaign={{ campaign }}"
+                               style="font-size: 11px; cursor: pointer;" onclick="this.select(); navigator.clipboard.writeText(this.value); this.style.borderColor='var(--ct-green)';">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 70px; font-size: 11px; font-weight: 600; color: var(--ct-text-muted);">Substack</span>
+                        <input type="text" class="form-control form-control-sm" readonly id="utm-substack"
+                               value="{{ base }}{{ sep }}utm_source=substack&utm_medium=email&utm_campaign={{ campaign }}"
+                               style="font-size: 11px; cursor: pointer;" onclick="this.select(); navigator.clipboard.writeText(this.value); this.style.borderColor='var(--ct-green)';">
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 

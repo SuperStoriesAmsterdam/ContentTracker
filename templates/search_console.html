@@ -3,7 +3,17 @@
 {% block title %}Search Console — {{ client.name }}{% endblock %}
 
 {% block content %}
-<h1 class="ct-page-title">Search Console</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <h1 class="ct-page-title" style="margin-bottom: 0;">Search Console</h1>
+    {% if performance %}
+    <form method="POST" action="{{ url_for('take_gsc_snapshot') }}" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="ct-btn-outline" style="font-size: 13px; padding: 8px 20px;">
+            <i class="bi bi-camera me-1"></i>Take Snapshot
+        </button>
+    </form>
+    {% endif %}
+</div>
 
 <!-- Site Selection -->
 <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 20px 24px; margin-bottom: 32px;">
@@ -156,12 +166,106 @@
 </div>
 {% endif %}
 
-{% elif selected_site %}
-<div class="alert alert-info">
+{% endif %}{# end if performance #}
+
+<!-- Keyword Targets -->
+<div style="margin-top: 32px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+            <div style="font-size: 20px; font-weight: 700;">Target Keywords</div>
+            <div style="font-size: 14px; color: var(--ct-text-muted);">Keywords you're actively targeting. The Content Tracker checks GSC for their progress.</div>
+        </div>
+    </div>
+
+    <!-- Add keyword form -->
+    <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 20px 24px; margin-bottom: 24px;">
+        <form method="POST" action="{{ url_for('add_keyword_target') }}" style="display: flex; gap: 12px; align-items: end;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div style="flex: 2;">
+                <label class="form-label">Keyword</label>
+                <input type="text" class="form-control" name="keyword" placeholder="e.g., wholeness coaching for therapists" required>
+            </div>
+            <div style="flex: 0 0 120px;">
+                <label class="form-label">Zone</label>
+                <select class="form-select" name="zone">
+                    <option value="3">Zone 3 — Quick win</option>
+                    <option value="2">Zone 2 — Medium</option>
+                    <option value="1">Zone 1 — Long game</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label class="form-label">Notes (optional)</label>
+                <input type="text" class="form-control" name="notes" placeholder="Why this keyword?">
+            </div>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">Add</button>
+        </form>
+    </div>
+
+    {% if keyword_targets %}
+    <div class="ct-table-wrap">
+        <table class="ct-table">
+            <thead>
+                <tr>
+                    <th>Keyword</th>
+                    <th style="text-align: center;">Zone</th>
+                    <th style="text-align: center;">Status</th>
+                    <th style="text-align: right;">Position</th>
+                    <th style="text-align: right;">Impressions</th>
+                    <th>Notes</th>
+                    <th style="text-align: right;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in keyword_targets %}
+                <tr>
+                    <td style="font-weight: 600;">{{ t.keyword }}</td>
+                    <td style="text-align: center;">
+                        <span class="ct-badge {% if t.zone == 1 %}ct-badge-danger{% elif t.zone == 2 %}ct-badge-warning{% else %}ct-badge-success{% endif %}" style="font-size: 11px;">
+                            Zone {{ t.zone }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if t.status == 'found' %}
+                        <span class="ct-badge ct-badge-success" style="font-size: 11px;">Found in GSC</span>
+                        {% else %}
+                        <span class="ct-badge ct-badge-info" style="font-size: 11px;">Tracking</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        {% if t.last_seen_position %}
+                        <span class="ct-badge {% if t.last_seen_position <= 10 %}ct-badge-success{% elif t.last_seen_position <= 20 %}ct-badge-warning{% else %}ct-badge-danger{% endif %}">
+                            {{ t.last_seen_position }}
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: right;">{{ t.last_seen_impressions or '—' }}</td>
+                    <td style="color: var(--ct-text-muted); font-size: 13px;">{{ t.notes or '' }}</td>
+                    <td style="text-align: right;">
+                        <form method="POST" action="{{ url_for('delete_keyword_target', target_id=t.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" style="background: none; border: none; color: var(--ct-text-light); cursor: pointer; font-size: 13px;" onclick="return confirm('Remove this keyword?')">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif not keyword_targets %}
+    <div style="text-align: center; padding: 32px; color: var(--ct-text-muted); font-size: 14px;">
+        No target keywords yet. Add keywords above to start tracking their progress in Google.
+    </div>
+    {% endif %}
+</div>
+
+{% if not performance and selected_site %}
+<div class="alert alert-info" style="margin-top: 32px;">
     Loading data for {{ selected_site }}... If this persists, there may be no data available yet.
 </div>
-{% else %}
-<div class="alert alert-info">
+{% elif not selected_site and not performance %}
+<div class="alert alert-info" style="margin-top: 32px;">
     Select a website above to view search performance data.
 </div>
 {% endif %}
