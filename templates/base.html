@@ -449,8 +449,8 @@
         </a>
         <div style="display: flex; align-items: center; gap: 24px;">
             {% if not session.client_id %}
-            <a href="{{ url_for('manual') }}" style="font-size: 13px; color: var(--ct-text-muted); text-decoration: none;">HOW</a>
-            <a href="{{ url_for('seo_guide') }}" style="font-size: 13px; color: var(--ct-text-muted); text-decoration: none;">WHY</a>
+            <a href="{{ url_for('manual') }}" style="font-size: 13px; font-weight: 500; color: #fff; background: #1d1d1d; text-decoration: none; padding: 8px 20px; border-radius: 9999px;">HOW</a>
+            <a href="{{ url_for('seo_guide') }}" style="font-size: 13px; font-weight: 500; color: #fff; background: #1d1d1d; text-decoration: none; padding: 8px 20px; border-radius: 9999px;">WHY</a>
             {% endif %}
             {% if session.client_name %}
             <span class="ct-topbar-client">
