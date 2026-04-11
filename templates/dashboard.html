@@ -31,7 +31,8 @@
     </div>
     <div style="display: flex; gap: 12px;">
         <a href="{{ url_for('create_client') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">+ New client</a>
-        <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">HOW + WHY</a>
+        <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">HOW</a>
+        <a href="{{ url_for('seo_guide') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">WHY</a>
     </div>
     {% else %}
     <!-- No clients yet -->
@@ -39,7 +40,8 @@
         <p style="font-size: 14px; color: var(--ct-text-muted); margin-bottom: 24px;">No clients yet. Create your first client to get started.</p>
         <a href="{{ url_for('create_client') }}" class="btn btn-primary" style="padding: 14px 32px; text-decoration: none;">+ Create your first client</a>
         <div style="margin-top: 16px;">
-            <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">HOW + WHY</a>
+            <a href="{{ url_for('manual') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">HOW</a>
+        <a href="{{ url_for('seo_guide') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-block;">WHY</a>
         </div>
     </div>
     {% endif %}
