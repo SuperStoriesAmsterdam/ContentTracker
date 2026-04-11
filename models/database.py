@@ -28,7 +28,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            password TEXT NOT NULL,
+            password TEXT,
             tone TEXT,
             key_phrases TEXT,
             forbidden_words TEXT,
