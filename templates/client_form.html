@@ -9,17 +9,13 @@
 
         <form method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="mb-3" style="text-align: left;">
+            <div class="mb-4" style="text-align: left;">
                 <input type="text" class="form-control" id="name" name="name" required
                        placeholder="Client name">
             </div>
-            <div class="mb-4" style="text-align: left;">
-                <input type="password" class="form-control" id="password" name="password"
-                       placeholder="Password (optional)">
-            </div>
             <div style="display: flex; gap: 12px; justify-content: center;">
                 <button type="submit" class="btn btn-primary">Create Client</button>
-                <a href="{{ url_for('dashboard') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-flex; align-items: center;">Cancel</a>
+                <a href="{{ url_for('clients_page') }}" class="ct-btn-outline" style="text-decoration: none; display: inline-flex; align-items: center;">Cancel</a>
             </div>
         </form>
     </div>
