@@ -1,31 +1,31 @@
-<svg width="800" height="880" viewBox="0 0 800 880" xmlns="http://www.w3.org/2000/svg">
+<svg width="800" height="900" viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
 <style>
   text { font-family: 'Outfit', 'Segoe UI', sans-serif; }
 </style>
 
 <!-- Background -->
-<rect width="800" height="880" fill="#ffffff"/>
+<rect width="800" height="900" fill="#ffffff"/>
 
 <!-- Title -->
 <text x="400" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#1d1d1d">How The Content Tracker works</text>
-<text x="400" y="58" text-anchor="middle" font-size="12" fill="#999999">The complete data flow — from Google to published content</text>
+<text x="400" y="58" text-anchor="middle" font-size="12" fill="#1d1d1d">The complete ecosystem — from data to published content and back</text>
 
 <!-- COLUMN BACKGROUNDS -->
-<rect x="20" y="80" width="230" height="750" rx="12" fill="#F8F7F5"/>
-<rect x="265" y="80" width="270" height="750" rx="12" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<rect x="550" y="80" width="230" height="750" rx="12" fill="#F8F7F5"/>
+<rect x="20" y="80" width="230" height="770" rx="12" fill="#F8F7F5"/>
+<rect x="265" y="80" width="270" height="770" rx="12" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<rect x="550" y="80" width="230" height="770" rx="12" fill="#F8F7F5"/>
 
 <!-- COLUMN LABELS -->
-<text x="135" y="108" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="2" fill="#999999">DATA SOURCES</text>
-<text x="400" y="108" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="2" fill="#999999">THE CONTENT TRACKER</text>
-<text x="665" y="108" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="2" fill="#999999">WHAT YOU SEE</text>
+<text x="135" y="108" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="2" fill="#1d1d1d">DATA SOURCES</text>
+<text x="400" y="108" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="2" fill="#1d1d1d">THE CONTENT TRACKER</text>
+<text x="665" y="108" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="2" fill="#1d1d1d">WHAT YOU SEE</text>
 
 <!-- === DATA SOURCES COLUMN === -->
 
 <!-- Google Search -->
 <rect x="35" y="128" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
 <text x="135" y="149" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1d">Google Search</text>
-<text x="135" y="165" text-anchor="middle" font-size="10" fill="#999999">People search, sites appear</text>
+<text x="135" y="165" text-anchor="middle" font-size="10" fill="#1d1d1d">People search, sites appear</text>
 
 <!-- Arrow down -->
 <line x1="135" y1="178" x2="135" y2="198" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
@@ -35,46 +35,53 @@
 <text x="135" y="219" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">Search Console (GSC)</text>
 <text x="135" y="235" text-anchor="middle" font-size="10" fill="#999999">Free — 16 months historical data</text>
 
-<!-- Arrow down -->
-<line x1="135" y1="248" x2="135" y2="268" stroke="#1d1d1d" stroke-width="1.5" marker-end="url(#arr-dark)"/>
-
-<!-- What GSC captures -->
-<rect x="35" y="268" width="200" height="120" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="135" y="290" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">What GSC captures</text>
-<text x="50" y="310" font-size="10" fill="#666666">Search terms used</text>
-<text x="50" y="326" font-size="10" fill="#666666">Impressions (appeared in results)</text>
-<text x="50" y="342" font-size="10" fill="#666666">Clicks (visited your site)</text>
-<text x="50" y="358" font-size="10" fill="#666666">Position (ranking)</text>
-<text x="50" y="374" font-size="10" fill="#666666">Backlinks (who links to you)</text>
-
 <!-- Arrow right to CT -->
-<line x1="235" y1="328" x2="278" y2="328" stroke="#1d1d1d" stroke-width="2" marker-end="url(#arr-dark)"/>
-<text x="256" y="320" text-anchor="middle" font-size="9" fill="#999999">API</text>
+<line x1="235" y1="223" x2="278" y2="223" stroke="#1d1d1d" stroke-width="2" marker-end="url(#arr-dark)"/>
+<text x="256" y="215" text-anchor="middle" font-size="9" fill="#1d1d1d">API</text>
 
 <!-- GA4 -->
-<rect x="35" y="408" width="200" height="50" rx="8" fill="#4CAF50"/>
-<text x="135" y="429" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">GA4 Analytics</text>
-<text x="135" y="445" text-anchor="middle" font-size="10" fill="#c8f0d0">Traffic, behaviour, conversions</text>
+<rect x="35" y="268" width="200" height="50" rx="8" fill="#4CAF50"/>
+<text x="135" y="289" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">GA4 Analytics</text>
+<text x="135" y="305" text-anchor="middle" font-size="10" fill="#c8f0d0">Traffic, behaviour, conversions</text>
 
 <!-- Arrow right to CT -->
-<line x1="235" y1="433" x2="278" y2="433" stroke="#4CAF50" stroke-width="2" marker-end="url(#arr-green)"/>
-<text x="256" y="425" text-anchor="middle" font-size="9" fill="#4CAF50">API</text>
+<line x1="235" y1="293" x2="278" y2="293" stroke="#4CAF50" stroke-width="2" marker-end="url(#arr-green)"/>
+<text x="256" y="285" text-anchor="middle" font-size="9" fill="#4CAF50">API</text>
+
+<!-- Substack -->
+<rect x="35" y="338" width="200" height="50" rx="8" fill="#FF8400"/>
+<text x="135" y="359" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">Substack</text>
+<text x="135" y="375" text-anchor="middle" font-size="10" fill="#ffe0b2">Subscribers, open rates, posts</text>
+
+<!-- Arrow right to CT -->
+<line x1="235" y1="363" x2="278" y2="363" stroke="#FF8400" stroke-width="2" marker-end="url(#arr-orange)"/>
+<text x="256" y="355" text-anchor="middle" font-size="9" fill="#FF8400">CSV</text>
+
+<!-- LinkedIn -->
+<rect x="35" y="408" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="135" y="429" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1d">LinkedIn</text>
+<text x="135" y="445" text-anchor="middle" font-size="10" fill="#1d1d1d">Impressions, new followers</text>
+
+<!-- Arrow right to CT -->
+<line x1="235" y1="433" x2="278" y2="433" stroke="#E8E6E2" stroke-width="2" marker-end="url(#arr-gray)"/>
+<text x="256" y="425" text-anchor="middle" font-size="9" fill="#1d1d1d">Manual</text>
+
+<!-- Instagram -->
+<rect x="35" y="478" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="135" y="499" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1d">Instagram</text>
+<text x="135" y="515" text-anchor="middle" font-size="10" fill="#1d1d1d">Reels, stories, posts metrics</text>
+
+<!-- Arrow right to CT -->
+<line x1="235" y1="503" x2="278" y2="503" stroke="#E8E6E2" stroke-width="2" marker-end="url(#arr-gray)"/>
+<text x="256" y="495" text-anchor="middle" font-size="9" fill="#1d1d1d">Manual</text>
 
 <!-- Manual input -->
-<rect x="35" y="478" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#FF8400" stroke-width="1"/>
-<text x="135" y="499" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1d">Manual input</text>
-<text x="135" y="515" text-anchor="middle" font-size="10" fill="#999999">Target keywords, ad spend</text>
+<rect x="35" y="548" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#FF8400" stroke-width="1"/>
+<text x="135" y="569" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1d">Manual input</text>
+<text x="135" y="585" text-anchor="middle" font-size="10" fill="#1d1d1d">Target keywords, ad spend</text>
 
 <!-- Arrow right to CT -->
-<line x1="235" y1="503" x2="278" y2="503" stroke="#FF8400" stroke-width="2" marker-end="url(#arr-orange)"/>
-
-<!-- Transcripts -->
-<rect x="35" y="548" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="135" y="569" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1d">Transcripts</text>
-<text x="135" y="585" text-anchor="middle" font-size="10" fill="#999999">Calls, podcasts, interviews</text>
-
-<!-- Arrow right to CT -->
-<line x1="235" y1="573" x2="278" y2="573" stroke="#E8E6E2" stroke-width="2" marker-end="url(#arr-gray)"/>
+<line x1="235" y1="573" x2="278" y2="573" stroke="#FF8400" stroke-width="2" marker-end="url(#arr-orange)"/>
 
 <!-- === CONTENT TRACKER COLUMN === -->
 
@@ -89,125 +96,124 @@
 <!-- Multi-site tracking -->
 <rect x="280" y="198" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#E8E6E2" stroke-width="1"/>
 <text x="400" y="219" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Multi-site tracking</text>
-<text x="400" y="235" text-anchor="middle" font-size="10" fill="#666666">All client sites in one view</text>
+<text x="400" y="235" text-anchor="middle" font-size="10" fill="#1d1d1d">All client sites in one view</text>
 
 <!-- Arrow down -->
 <line x1="400" y1="248" x2="400" y2="268" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
 
 <!-- Longitudinal tracking -->
-<rect x="280" y="268" width="240" height="70" rx="8" fill="#F8F7F5" stroke="#E8E6E2" stroke-width="1"/>
-<text x="400" y="290" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Longitudinal tracking</text>
-<text x="295" y="310" font-size="10" fill="#666666">Week vs month vs quarter vs year</text>
-<text x="295" y="326" font-size="10" fill="#666666">Position movement over time</text>
+<rect x="280" y="268" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#E8E6E2" stroke-width="1"/>
+<text x="400" y="289" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Historical snapshots</text>
+<text x="400" y="305" text-anchor="middle" font-size="10" fill="#1d1d1d">Position + traffic over time</text>
 
 <!-- Arrow down -->
-<line x1="400" y1="338" x2="400" y2="358" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+<line x1="400" y1="318" x2="400" y2="338" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
 
 <!-- Keyword targeting -->
-<rect x="280" y="358" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#FF8400" stroke-width="1"/>
-<text x="400" y="379" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Keyword targeting (Zone 1/2/3)</text>
-<text x="400" y="395" text-anchor="middle" font-size="10" fill="#666666">Track progress on target keywords</text>
+<rect x="280" y="338" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#FF8400" stroke-width="1"/>
+<text x="400" y="359" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Keyword targeting (Zone 1/2/3)</text>
+<text x="400" y="375" text-anchor="middle" font-size="10" fill="#1d1d1d">Track progress on target keywords</text>
 
 <!-- Arrow down -->
-<line x1="400" y1="408" x2="400" y2="428" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+<line x1="400" y1="388" x2="400" y2="408" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
 
 <!-- Conversion tracking -->
-<rect x="280" y="428" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#4CAF50" stroke-width="1"/>
-<text x="400" y="449" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Conversion tracking</text>
-<text x="400" y="465" text-anchor="middle" font-size="10" fill="#666666">Which content sells trainings (GA4)</text>
+<rect x="280" y="408" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#4CAF50" stroke-width="1"/>
+<text x="400" y="429" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Conversion tracking</text>
+<text x="400" y="445" text-anchor="middle" font-size="10" fill="#1d1d1d">Which content drives sales (GA4)</text>
 
 <!-- Arrow down -->
-<line x1="400" y1="478" x2="400" y2="498" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+<line x1="400" y1="458" x2="400" y2="478" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
 
-<!-- Expert Profile -->
-<rect x="280" y="498" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#E8E6E2" stroke-width="1"/>
-<text x="400" y="519" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Expert Profile + Voice Bank</text>
-<text x="400" y="535" text-anchor="middle" font-size="10" fill="#666666">Beliefs, stories, phrases, voice</text>
+<!-- Ecosystem tracking -->
+<rect x="280" y="478" width="240" height="50" rx="8" fill="#F8F7F5" stroke="#E8E6E2" stroke-width="1"/>
+<text x="400" y="499" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Ecosystem tracking</text>
+<text x="400" y="515" text-anchor="middle" font-size="10" fill="#1d1d1d">Substack + LinkedIn + Instagram</text>
 
 <!-- Arrow down -->
-<line x1="400" y1="548" x2="400" y2="568" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+<line x1="400" y1="528" x2="400" y2="548" stroke="#E8E6E2" stroke-width="1.5" marker-end="url(#arr-gray)"/>
 
-<!-- AI recommendations -->
-<rect x="280" y="568" width="240" height="50" rx="8" fill="#1d1d1d"/>
-<text x="400" y="589" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">AI Analyzer</text>
-<text x="400" y="605" text-anchor="middle" font-size="10" fill="#999999">Write this — here's why</text>
+<!-- AI Analyzer -->
+<rect x="280" y="548" width="240" height="50" rx="8" fill="#1d1d1d"/>
+<text x="400" y="569" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">AI Analyzer</text>
+<text x="400" y="585" text-anchor="middle" font-size="10" fill="#999999">What to write next — and why</text>
 
 <!-- Arrow right to What you see -->
-<line x1="520" y1="593" x2="558" y2="593" stroke="#1d1d1d" stroke-width="2" marker-end="url(#arr-dark)"/>
+<line x1="520" y1="573" x2="558" y2="573" stroke="#1d1d1d" stroke-width="2" marker-end="url(#arr-dark)"/>
 
 <!-- Arrow down -->
-<line x1="400" y1="618" x2="400" y2="638" stroke="#1d1d1d" stroke-width="1.5" marker-end="url(#arr-dark)"/>
+<line x1="400" y1="598" x2="400" y2="618" stroke="#1d1d1d" stroke-width="1.5" marker-end="url(#arr-dark)"/>
 
-<!-- Writing Kit -->
-<rect x="280" y="638" width="240" height="50" rx="8" fill="#4CAF50"/>
-<text x="400" y="659" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">Writing Kit export</text>
-<text x="400" y="675" text-anchor="middle" font-size="10" fill="#c8f0d0">Brief + voice + data → clipboard</text>
+<!-- Content brief -->
+<rect x="280" y="618" width="240" height="50" rx="8" fill="#1d1d1d"/>
+<text x="400" y="639" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">Content brief</text>
+<text x="400" y="655" text-anchor="middle" font-size="10" fill="#999999">Keyword + data + angle → brief</text>
 
 <!-- Arrow right -->
-<line x1="520" y1="663" x2="558" y2="663" stroke="#4CAF50" stroke-width="2" marker-end="url(#arr-green)"/>
+<line x1="520" y1="643" x2="558" y2="643" stroke="#1d1d1d" stroke-width="2" marker-end="url(#arr-dark)"/>
 
 <!-- === WHAT YOU SEE COLUMN === -->
 
 <!-- Dashboard -->
-<rect x="565" y="128" width="200" height="60" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="665" y="151" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Multi-site dashboard</text>
-<text x="580" y="168" font-size="10" fill="#666666">Rankings, clicks, impressions</text>
-<text x="580" y="181" font-size="10" fill="#666666">per site in one view</text>
+<rect x="565" y="128" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="665" y="149" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Multi-site dashboard</text>
+<text x="580" y="166" font-size="10" fill="#1d1d1d">All sites, one view</text>
 
-<!-- Position movement -->
-<rect x="565" y="204" width="200" height="60" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="665" y="227" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Position timeline</text>
-<text x="580" y="244" font-size="10" fill="#666666">pos. 14 → pos. 8 in 90 days</text>
-<text x="580" y="257" font-size="10" fill="#4CAF50">keyword trajectory over time</text>
+<!-- Position timeline -->
+<rect x="565" y="194" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="665" y="215" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Position timeline</text>
+<text x="580" y="232" font-size="10" fill="#1d1d1d">Keyword trajectory over time</text>
 
-<!-- Backlink tracker -->
-<rect x="565" y="280" width="200" height="60" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="665" y="303" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Backlink tracker</text>
-<text x="580" y="320" font-size="10" fill="#666666">43 referring domains</text>
-<text x="580" y="333" font-size="10" fill="#999999">growth tracked over time</text>
-
-<!-- Authority signals -->
-<rect x="565" y="356" width="200" height="70" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="665" y="379" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Authority signals</text>
-<text x="580" y="396" font-size="10" fill="#666666">Avg position trend</text>
-<text x="580" y="409" font-size="10" fill="#666666">Total keywords growth</text>
-<text x="580" y="422" font-size="10" fill="#666666">Branded search volume</text>
-
-<!-- Conversion dashboard -->
-<rect x="565" y="442" width="200" height="60" rx="8" fill="#FFFFFF" stroke="#4CAF50" stroke-width="1"/>
-<text x="665" y="465" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Conversions</text>
-<text x="580" y="482" font-size="10" fill="#4CAF50">Which articles sell trainings</text>
-<text x="580" y="495" font-size="10" fill="#666666">Revenue per keyword</text>
+<!-- Conversions -->
+<rect x="565" y="260" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#4CAF50" stroke-width="1"/>
+<text x="665" y="281" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Conversions</text>
+<text x="580" y="298" font-size="10" fill="#4CAF50">Which content drives sales</text>
 
 <!-- Keyword progress -->
-<rect x="565" y="518" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#FF8400" stroke-width="1"/>
-<text x="665" y="539" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Keyword progress</text>
-<text x="580" y="556" font-size="10" fill="#FF8400">Zone 3 → Zone 2 → Zone 1</text>
+<rect x="565" y="326" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#FF8400" stroke-width="1"/>
+<text x="665" y="347" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Keyword progress</text>
+<text x="580" y="364" font-size="10" fill="#FF8400">Zone 3 → Zone 2 → Zone 1</text>
+
+<!-- Ecosystem view -->
+<rect x="565" y="392" width="200" height="60" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="665" y="413" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Ecosystem view</text>
+<text x="580" y="430" font-size="10" fill="#1d1d1d">Substack + social trends</text>
+<text x="580" y="443" font-size="10" fill="#1d1d1d">Channel exit criteria</text>
+
+<!-- Domain landscape -->
+<rect x="565" y="468" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="665" y="489" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Domain landscape</text>
+<text x="580" y="506" font-size="10" fill="#1d1d1d">Other writers in your space</text>
 
 <!-- What to write next -->
-<rect x="565" y="584" width="200" height="50" rx="8" fill="#1d1d1d"/>
-<text x="665" y="605" text-anchor="middle" font-size="11" font-weight="600" fill="#ffffff">What to write next</text>
-<text x="665" y="621" text-anchor="middle" font-size="10" fill="#999999">Data-backed recommendation</text>
+<rect x="565" y="534" width="200" height="50" rx="8" fill="#1d1d1d"/>
+<text x="665" y="555" text-anchor="middle" font-size="11" font-weight="600" fill="#ffffff">What to write next</text>
+<text x="665" y="571" text-anchor="middle" font-size="10" fill="#999999">Data-backed recommendation</text>
 
-<!-- Claude Projects -->
-<rect x="565" y="650" width="200" height="50" rx="8" fill="#4CAF50"/>
-<text x="665" y="671" text-anchor="middle" font-size="11" font-weight="600" fill="#ffffff">Write in Claude Projects</text>
-<text x="665" y="687" text-anchor="middle" font-size="10" fill="#c8f0d0">Paste Writing Kit → write</text>
+<!-- Brief output -->
+<rect x="565" y="600" width="200" height="50" rx="8" fill="#1d1d1d"/>
+<text x="665" y="621" text-anchor="middle" font-size="11" font-weight="600" fill="#ffffff">Brief → Claude Projects</text>
+<text x="665" y="637" text-anchor="middle" font-size="10" fill="#999999">Write the article there</text>
 
-<!-- Publish + loop back -->
-<rect x="565" y="716" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
-<text x="665" y="737" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Publish + enter URL</text>
-<text x="665" y="753" text-anchor="middle" font-size="10" fill="#999999">Closes the loop — tracking starts</text>
+<!-- Publish -->
+<rect x="565" y="666" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="665" y="687" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Publish + enter URL</text>
+<text x="665" y="703" text-anchor="middle" font-size="10" fill="#1d1d1d">Website, Substack, social</text>
+
+<!-- Qualitative snapshot -->
+<rect x="565" y="732" width="200" height="50" rx="8" fill="#FFFFFF" stroke="#E8E6E2" stroke-width="1"/>
+<text x="665" y="753" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1d">Monthly snapshot</text>
+<text x="665" y="769" text-anchor="middle" font-size="10" fill="#1d1d1d">Quality of audience understanding</text>
 
 <!-- Loop arrow -->
-<path d="M 665 766 L 665 790 L 260 790 L 260 153 L 278 153" fill="none" stroke="#1d1d1d" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arr-dark)"/>
-<text x="460" y="805" text-anchor="middle" font-size="10" font-weight="600" fill="#1d1d1d">THE FLYWHEEL — data feeds back, intelligence compounds</text>
+<path d="M 665 782 L 665 810 L 260 810 L 260 153 L 278 153" fill="none" stroke="#1d1d1d" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arr-dark)"/>
+<text x="460" y="825" text-anchor="middle" font-size="10" font-weight="600" fill="#1d1d1d">THE FLYWHEEL — data feeds back, intelligence compounds</text>
 
 <!-- LEGEND -->
-<rect x="20" y="825" width="760" height="1" fill="#E8E6E2"/>
-<text x="35" y="845" font-size="10" fill="#999999">GSC = Google Search Console — free, connects via OAuth, 16 months historical data, updates daily</text>
-<text x="35" y="860" font-size="10" fill="#999999">GA4 = Google Analytics 4 — free, shows what visitors do on your site + conversions (purchases, signups)</text>
-<text x="35" y="875" font-size="10" fill="#cccccc" font-style="italic">The Content Tracker — by SuperStories BV — April 2026</text>
+<rect x="20" y="845" width="760" height="1" fill="#E8E6E2"/>
+<text x="35" y="865" font-size="10" fill="#1d1d1d">GSC + GA4 = automatic (API) | Substack = CSV import | LinkedIn + Instagram = manual weekly input (5 min)</text>
+<text x="35" y="880" font-size="10" fill="#1d1d1d">Expert voice + content writing happens in Claude Projects — the Content Tracker provides data and direction</text>
+<text x="35" y="895" font-size="10" fill="#cccccc" font-style="italic">The Content Tracker — by SuperStories BV — April 2026</text>
 
 <!-- ARROW MARKERS -->
 <defs>
