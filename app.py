@@ -126,14 +126,14 @@ def clients_page():
     clients = Client.get_all()
     return render_template('clients.html', clients=clients)
 
-@app.route('/manual')
+@app.route('/how')
 def manual():
-    """The manual / how-it-works page."""
+    """HOW — how the tool works."""
     return render_template('manual.html')
 
-@app.route('/seo-guide')
+@app.route('/why')
 def seo_guide():
-    """How SEO works — shareable guide for clients and teams."""
+    """WHY — the technical aspects of contemporary content marketing."""
     return render_template('seo_guide.html')
 
 @app.route('/client/new', methods=['GET', 'POST'])
