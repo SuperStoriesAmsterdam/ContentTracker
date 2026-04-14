@@ -114,13 +114,21 @@ def require_client(f):
 # ==================== SITE AUTH ====================
 
 SITE_PASSWORD = os.environ.get('SITE_PASSWORD', '')
+API_KEY = os.environ.get('CT_API_KEY', '')
 PUBLIC_ROUTES = {'manual', 'seo_guide', 'site_login', 'static', 'google_connect', 'oauth_callback'}
 
 @app.before_request
 def check_site_auth():
-    """Require site password for all routes except /how, /why, and login."""
+    """Require site password for all routes except /how, /why, login, and API calls."""
+    # API key auth — skip site password for API requests
+    if request.path.startswith('/api/') and API_KEY:
+        api_key = request.headers.get('X-API-Key', '')
+        if api_key == API_KEY:
+            return
+        return jsonify({'error': 'Invalid API key'}), 401
+
     if not SITE_PASSWORD:
-        return  # No password set, everything is open
+        return
     if request.endpoint in PUBLIC_ROUTES:
         return
     if session.get('site_authenticated'):
@@ -1143,6 +1151,168 @@ def multi_site_dashboard():
                            summary=summary,
                            days=days,
                            has_sites=bool(Site.get_all_by_client_id(client.id)))
+
+
+# ==================== API ENDPOINTS ====================
+
+@app.route('/api/clients', methods=['GET'])
+def api_clients():
+    """List all clients."""
+    clients = Client.get_all()
+    return jsonify([{'id': c.id, 'name': c.name} for c in clients])
+
+
+@app.route('/api/clients/<int:client_id>/keywords', methods=['GET', 'POST'])
+def api_keywords(client_id):
+    """GET: list target keywords. POST: add a target keyword."""
+    if request.method == 'POST':
+        data = request.get_json()
+        if not data or not data.get('keyword'):
+            return jsonify({'error': 'keyword is required'}), 400
+
+        target = KeywordTarget(
+            client_id=client_id,
+            keyword=data['keyword'],
+            zone=data.get('zone', 3),
+            notes=data.get('notes', '')
+        )
+        target.save()
+        return jsonify({'id': target.id, 'keyword': target.keyword, 'zone': target.zone}), 201
+
+    targets = KeywordTarget.get_by_client(client_id)
+    return jsonify([{
+        'id': t.id,
+        'keyword': t.keyword,
+        'zone': t.zone,
+        'status': t.status,
+        'last_seen_position': t.last_seen_position,
+        'last_seen_impressions': t.last_seen_impressions,
+        'notes': t.notes
+    } for t in targets])
+
+
+@app.route('/api/clients/<int:client_id>/snapshots', methods=['GET', 'POST'])
+def api_snapshots(client_id):
+    """GET: snapshot info. POST: take a new snapshot."""
+    if request.method == 'POST':
+        client = Client.get_by_id(client_id)
+        if not client or not client.search_console_site:
+            return jsonify({'error': 'No GSC site configured'}), 400
+
+        creds_json = client.google_credentials
+        if not creds_json:
+            return jsonify({'error': 'No Google credentials'}), 400
+
+        try:
+            creds = json.loads(creds_json)
+            performance = google_docs_service.get_search_performance(
+                creds, client.search_console_site, days=28)
+            rows = performance.get('rows', [])
+            count = GscSnapshot.take_snapshot(client.id, client.search_console_site, rows)
+            return jsonify({'keywords_saved': count, 'date': datetime.now().strftime('%Y-%m-%d')})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    return jsonify({
+        'latest_snapshot': GscSnapshot.get_latest_snapshot_date(client_id),
+        'total_snapshots': GscSnapshot.get_snapshot_count(client_id)
+    })
+
+
+@app.route('/api/clients/<int:client_id>/performance', methods=['GET'])
+def api_performance(client_id):
+    """Get current GSC performance data for a client."""
+    client = Client.get_by_id(client_id)
+    if not client or not client.search_console_site:
+        return jsonify({'error': 'No GSC site configured'}), 400
+
+    creds_json = client.google_credentials
+    if not creds_json:
+        return jsonify({'error': 'No Google credentials'}), 400
+
+    try:
+        creds = json.loads(creds_json)
+        days = request.args.get('days', 28, type=int)
+        performance = google_docs_service.get_search_performance(
+            creds, client.search_console_site, days=days)
+        opportunities = google_docs_service.get_keyword_opportunities(
+            creds, client.search_console_site, days=days)
+        return jsonify({
+            'performance': performance,
+            'opportunities': opportunities
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/clients/<int:client_id>/trajectory/<path:keyword>', methods=['GET'])
+def api_trajectory(client_id, keyword):
+    """Get position trajectory for a keyword."""
+    data = GscSnapshot.get_trajectory(client_id, keyword)
+    return jsonify(data)
+
+
+@app.route('/api/clients/<int:client_id>/ecosystem', methods=['POST'])
+def api_ecosystem(client_id):
+    """Store weekly ecosystem metrics (Instagram, LinkedIn, Substack)."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'JSON body required'}), 400
+
+    # Store in a simple key-value format in the database
+    conn = __import__('sqlite3').connect(get_db_path())
+    cursor = conn.cursor()
+
+    # Create table if not exists
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ecosystem_weekly (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id INTEGER NOT NULL,
+            week_date TEXT NOT NULL,
+            platform TEXT NOT NULL,
+            metric_name TEXT NOT NULL,
+            metric_value REAL,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES clients(id)
+        )
+    ''')
+
+    week_date = data.get('week_date', datetime.now().strftime('%Y-%m-%d'))
+    entries = data.get('entries', [])
+    count = 0
+
+    for entry in entries:
+        cursor.execute('''
+            INSERT INTO ecosystem_weekly (client_id, week_date, platform, metric_name, metric_value, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (client_id, week_date, entry.get('platform', ''),
+              entry.get('metric', ''), entry.get('value', 0),
+              entry.get('notes', '')))
+        count += 1
+
+    conn.commit()
+    conn.close()
+    return jsonify({'entries_saved': count, 'week_date': week_date}), 201
+
+
+@app.route('/api/clients/<int:client_id>/ecosystem', methods=['GET'])
+def api_ecosystem_get(client_id):
+    """Get ecosystem metrics for a client."""
+    conn = __import__('sqlite3').connect(get_db_path())
+    conn.row_factory = __import__('sqlite3').Row
+    weeks = request.args.get('weeks', 12, type=int)
+
+    rows = conn.execute('''
+        SELECT week_date, platform, metric_name, metric_value, notes
+        FROM ecosystem_weekly
+        WHERE client_id = ?
+        ORDER BY week_date DESC, platform
+        LIMIT ?
+    ''', (client_id, weeks * 20)).fetchall()
+    conn.close()
+
+    return jsonify([dict(r) for r in rows])
 
 
 # ==================== MAIN ====================
