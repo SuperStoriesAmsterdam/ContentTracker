@@ -3,11 +3,15 @@
 {% block title %}Content Briefs - {{ client.name }}{% endblock %}
 
 {% block content %}
+{% from '_export_buttons.html' import export_buttons %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Content Briefs</h1>
-    <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> New Brief
-    </a>
+    <div style="display: inline-flex; gap: 8px; align-items: center;">
+        {{ export_buttons('/export/briefs') }}
+        <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Brief
+        </a>
+    </div>
 </div>
 
 {% if briefs %}

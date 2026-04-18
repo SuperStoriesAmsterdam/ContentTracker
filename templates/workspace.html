@@ -3,12 +3,16 @@
 {% block title %}{{ client.name }} Workspace{% endblock %}
 
 {% block content %}
+{% from '_export_buttons.html' import export_buttons %}
 <!-- Header -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
     <h1 class="ct-page-title">{{ client.name }} Workspace</h1>
-    <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>New Content Brief
-    </a>
+    <div style="display: inline-flex; gap: 8px; align-items: center;">
+        {{ export_buttons('/export/workspace') }}
+        <a href="{{ url_for('create_brief') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>New Content Brief
+        </a>
+    </div>
 </div>
 
 <div class="row">

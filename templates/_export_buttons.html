@@ -1,0 +1,15 @@
+{% macro export_buttons(base_url) -%}
+<div style="display: inline-flex; gap: 8px;">
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm"
+            style="padding: 6px 16px; font-size: 13px;"
+            onclick="ctCopyExport('{{ base_url }}/md', this)">
+        <i class="bi bi-clipboard"></i> Copy as Markdown
+    </button>
+    <a class="btn btn-outline-secondary btn-sm"
+       style="padding: 6px 16px; font-size: 13px;"
+       href="{{ base_url }}/xlsx">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Download Excel
+    </a>
+</div>
+{%- endmacro %}

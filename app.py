@@ -8,7 +8,7 @@ import os
 import json
 import logging
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response, abort
 from flask_wtf.csrf import CSRFProtect
 
 from config import Config
@@ -27,6 +27,7 @@ from services.seo_validator import SEOValidator
 from services.schema_generator import SchemaGenerator
 from services.content_parser import ContentParser
 from services.google_docs_service import GoogleDocsService
+from services import exporter
 
 # Configure logging
 logging.basicConfig(
@@ -1313,6 +1314,385 @@ def api_ecosystem_get(client_id):
     conn.close()
 
     return jsonify([dict(r) for r in rows])
+
+
+# ==================== EXPORT ROUTES ====================
+
+def _build_analytics_export(client):
+    tables = []
+    creds = get_google_credentials()
+    if creds and client.analytics_property_id and google_docs_service:
+        try:
+            pageviews = google_docs_service.get_analytics_pageviews(creds, client.analytics_property_id)
+            if pageviews:
+                rows = [
+                    [r['page'], r['pageviews'], r['users'], r['avg_time']]
+                    for r in pageviews.get('rows', [])
+                ]
+                tables.append({
+                    'name': 'Pageviews',
+                    'summary': {
+                        'Total Pageviews (28d)': pageviews.get('totals', {}).get('pageviews', 0),
+                        'Total Users (28d)': pageviews.get('totals', {}).get('users', 0),
+                    },
+                    'columns': ['Page', 'Pageviews', 'Users', 'Avg Time (s)'],
+                    'rows': rows,
+                })
+        except Exception as e:
+            logger.warning(f"Analytics pageviews export failed: {e}")
+
+        try:
+            conversions = google_docs_service.get_analytics_conversions(creds, client.analytics_property_id)
+            if conversions:
+                rows = [
+                    [r.get('page', ''), r.get('event', ''), r.get('count', 0), r.get('value', 0)]
+                    for r in conversions.get('rows', [])
+                ]
+                tables.append({
+                    'name': 'Conversions',
+                    'summary': {
+                        'Total Conversions (28d)': conversions.get('totals', {}).get('conversions', 0),
+                        'Total Value': conversions.get('totals', {}).get('value', 0),
+                    },
+                    'columns': ['Page', 'Event', 'Count', 'Value'],
+                    'rows': rows,
+                })
+        except Exception as e:
+            logger.warning(f"Analytics conversions export failed: {e}")
+
+    return f"{client.name} — Analytics (28 days)", tables, 'analytics'
+
+
+def _build_search_console_export(client):
+    tables = []
+    creds = get_google_credentials()
+    if not (creds and client.search_console_site and google_docs_service):
+        return f"{client.name} — Search Console", tables, 'search-console'
+
+    site_url = client.search_console_site
+
+    try:
+        performance = google_docs_service.get_search_performance(creds, site_url)
+        if performance:
+            rows = [
+                [r['query'], r['clicks'], r['impressions'], r['ctr'], r['position']]
+                for r in performance.get('rows', [])
+            ]
+            tables.append({
+                'name': 'Top Queries',
+                'summary': {
+                    'Site': site_url,
+                    'Total Clicks (28d)': performance.get('totals', {}).get('clicks', 0),
+                    'Total Impressions (28d)': performance.get('totals', {}).get('impressions', 0),
+                },
+                'columns': ['Query', 'Clicks', 'Impressions', 'CTR %', 'Position'],
+                'rows': rows,
+            })
+    except Exception as e:
+        logger.warning(f"GSC performance export failed: {e}")
+
+    try:
+        pages = google_docs_service.get_page_performance(creds, site_url)
+        if pages:
+            rows = [
+                [r['page'], r['clicks'], r['impressions'], r['ctr'], r['position']]
+                for r in pages
+            ]
+            tables.append({
+                'name': 'Top Pages',
+                'columns': ['Page', 'Clicks', 'Impressions', 'CTR %', 'Position'],
+                'rows': rows,
+            })
+    except Exception as e:
+        logger.warning(f"GSC pages export failed: {e}")
+
+    try:
+        opportunities = google_docs_service.get_keyword_opportunities(creds, site_url)
+        if opportunities:
+            rows = [
+                [o['query'], o.get('zone_label', ''), o['impressions'], o['clicks'],
+                 o['position'], o['priority']]
+                for o in opportunities
+            ]
+            tables.append({
+                'name': 'Keyword Opportunities',
+                'columns': ['Query', 'Zone', 'Impressions', 'Clicks', 'Position', 'Priority'],
+                'rows': rows,
+            })
+    except Exception as e:
+        logger.warning(f"GSC opportunities export failed: {e}")
+
+    try:
+        targets = KeywordTarget.get_by_client(client.id)
+        if targets:
+            rows = [
+                [t.keyword,
+                 f"Zone {t.zone}",
+                 getattr(t, 'status', '') or '',
+                 getattr(t, 'position', '') or '',
+                 getattr(t, 'impressions', '') or '',
+                 getattr(t, 'notes', '') or '']
+                for t in targets
+            ]
+            tables.append({
+                'name': 'Target Keywords',
+                'columns': ['Keyword', 'Zone', 'Status', 'Position', 'Impressions', 'Notes'],
+                'rows': rows,
+            })
+    except Exception as e:
+        logger.warning(f"Target keywords export failed: {e}")
+
+    return f"{client.name} — Search Console ({site_url})", tables, 'search-console'
+
+
+def _build_multi_site_export(client):
+    tables = []
+    creds = get_google_credentials()
+    if not (creds and google_docs_service):
+        return f"{client.name} — Multi-Site", tables, 'multi-site'
+
+    sites = Site.get_all_by_client_id(client.id)
+    if not sites and client.search_console_site:
+        sites = [Site(id=0, client_id=client.id,
+                      url=client.search_console_site,
+                      name=client.search_console_site,
+                      gsc_property=client.search_console_site)]
+
+    summary_rows = []
+    for site in sites:
+        clicks = 0
+        impressions = 0
+        position = 0
+        if site.gsc_property:
+            try:
+                perf = google_docs_service.get_search_performance(creds, site.gsc_property)
+                if perf:
+                    clicks = perf.get('totals', {}).get('clicks', 0)
+                    impressions = perf.get('totals', {}).get('impressions', 0)
+                    positions = [r.get('position', 0) for r in perf.get('rows', []) if r.get('position')]
+                    position = round(sum(positions) / len(positions), 1) if positions else 0
+            except Exception as e:
+                logger.warning(f"Multi-site GSC fetch failed for {site.gsc_property}: {e}")
+        summary_rows.append([site.name or site.url, clicks, impressions, position])
+
+    summary_rows.sort(key=lambda r: r[1], reverse=True)
+    tables.append({
+        'name': 'Site Summary (28d)',
+        'columns': ['Site', 'Clicks', 'Impressions', 'Avg Position'],
+        'rows': summary_rows,
+    })
+
+    return f"{client.name} — Multi-Site Overview", tables, 'multi-site'
+
+
+def _build_content_strategy_export(client):
+    tables = []
+    creds = get_google_credentials()
+    if creds and client.search_console_site and google_docs_service:
+        try:
+            opportunities = google_docs_service.get_keyword_opportunities(creds, client.search_console_site)
+            if opportunities:
+                rows = [
+                    [o['query'], o.get('zone_label', ''), o['impressions'], o['clicks'],
+                     o['position'], o['priority']]
+                    for o in opportunities[:20]
+                ]
+                tables.append({
+                    'name': 'Keyword Opportunities',
+                    'columns': ['Query', 'Zone', 'Impressions', 'Clicks', 'Position', 'Priority'],
+                    'rows': rows,
+                })
+        except Exception as e:
+            logger.warning(f"Strategy opportunities export failed: {e}")
+
+    existing = Content.get_by_client(client.id, limit=50)
+    if existing:
+        rows = [
+            [c.meta_title or c.h1 or 'Untitled',
+             getattr(c, 'primary_keyword', '') or '',
+             c.published_url or '',
+             c.created_at or '']
+            for c in existing
+        ]
+        tables.append({
+            'name': 'Existing Content',
+            'columns': ['Title', 'Primary Keyword', 'Published URL', 'Created'],
+            'rows': rows,
+        })
+
+    return f"{client.name} — Content Strategy", tables, 'content-strategy'
+
+
+def _build_briefs_export(client):
+    briefs = Brief.get_by_client(client.id)
+    rows = [
+        [b.id, b.title or '', b.content_type or '',
+         getattr(b, 'primary_keyword', '') or '', b.created_at or '']
+        for b in briefs
+    ]
+    table = {
+        'name': 'Briefs',
+        'columns': ['ID', 'Title', 'Type', 'Primary Keyword', 'Created'],
+        'rows': rows,
+    }
+    return f"{client.name} — Briefs", [table], 'briefs'
+
+
+def _build_workspace_export(client):
+    tables = []
+    briefs = Brief.get_by_client(client.id)
+    contents = Content.get_by_client(client.id, limit=50)
+
+    if contents:
+        rows = [
+            [c.id,
+             c.meta_title or c.h1 or 'Untitled',
+             c.published_url or '',
+             c.created_at or '']
+            for c in contents
+        ]
+        tables.append({
+            'name': 'Recent Content',
+            'columns': ['ID', 'Title', 'Published URL', 'Created'],
+            'rows': rows,
+        })
+
+    if briefs:
+        rows = [
+            [b.id, b.title or '', b.content_type or '', b.created_at or '']
+            for b in briefs
+        ]
+        tables.append({
+            'name': 'Recent Briefs',
+            'columns': ['ID', 'Title', 'Type', 'Created'],
+            'rows': rows,
+        })
+
+    return f"{client.name} — Workspace", tables, 'workspace'
+
+
+def _build_sites_export(client):
+    sites = Site.get_all_by_client_id(client.id)
+    rows = [
+        [s.id, s.name or '', s.url or '', s.gsc_property or '',
+         getattr(s, 'created_at', '') or '']
+        for s in sites
+    ]
+    return (f"{client.name} — Sites",
+            [{
+                'name': 'Sites',
+                'columns': ['ID', 'Name', 'URL', 'GSC Property', 'Created'],
+                'rows': rows,
+            }],
+            'sites')
+
+
+def _build_ad_spend_export(client):
+    tables = []
+    entries = AdSpend.get_by_client(client.id)
+    monthly_totals = AdSpend.get_monthly_totals(client.id)
+
+    if entries:
+        rows = [
+            [f"{MONTH_NAMES.get(e.month, e.month)} {e.year}",
+             e.platform, e.amount, e.currency, e.notes or '']
+            for e in entries
+        ]
+        tables.append({
+            'name': 'Entries',
+            'columns': ['Month', 'Platform', 'Amount', 'Currency', 'Notes'],
+            'rows': rows,
+        })
+
+    if monthly_totals:
+        rows = [
+            [f"{MONTH_NAMES.get(t['month'], t['month'])} {t['year']}",
+             t['total'], t.get('currency', 'EUR')]
+            for t in monthly_totals
+        ]
+        tables.append({
+            'name': 'Monthly Totals',
+            'columns': ['Month', 'Total', 'Currency'],
+            'rows': rows,
+        })
+
+    return f"{client.name} — Ad Spend", tables, 'ad-spend'
+
+
+_EXPORT_BUILDERS = {
+    'analytics': _build_analytics_export,
+    'search-console': _build_search_console_export,
+    'multi-site': _build_multi_site_export,
+    'content-strategy': _build_content_strategy_export,
+    'briefs': _build_briefs_export,
+    'workspace': _build_workspace_export,
+    'sites': _build_sites_export,
+    'ad-spend': _build_ad_spend_export,
+}
+
+
+def _export_response(fmt, title, tables, filename_base):
+    subtitle = f"Exported {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    if fmt == 'md':
+        body = exporter.to_markdown(title, tables, subtitle=subtitle)
+        return Response(body, mimetype='text/markdown; charset=utf-8')
+    if fmt == 'xlsx':
+        body = exporter.to_xlsx(tables)
+        return Response(
+            body,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': f'attachment; filename="{filename_base}.xlsx"'}
+        )
+    abort(400)
+
+
+@app.route('/export/<section>/<fmt>')
+@require_client
+def export_section(section, fmt):
+    if fmt not in ('md', 'xlsx'):
+        abort(400)
+    builder = _EXPORT_BUILDERS.get(section)
+    if not builder:
+        abort(404)
+    client = get_current_client()
+    title, tables, filename = builder(client)
+    return _export_response(fmt, title, tables, filename)
+
+
+@app.route('/export/content/<int:content_id>/<fmt>')
+@require_client
+def export_content_view(content_id, fmt):
+    if fmt not in ('md', 'xlsx'):
+        abort(400)
+    client = get_current_client()
+    content = Content.get_by_id(content_id)
+    if not content or content.client_id != client.id:
+        abort(404)
+
+    derived = DerivedContent.get_by_source(content_id)
+    tables = [{
+        'name': 'Content',
+        'summary': {
+            'Title': content.meta_title or content.h1 or 'Untitled',
+            'Published URL': content.published_url or '—',
+            'Created': content.created_at or '',
+        },
+        'columns': ['Field', 'Value'],
+        'rows': [
+            ['Meta Title', content.meta_title or ''],
+            ['Meta Description', content.meta_description or ''],
+            ['H1', content.h1 or ''],
+            ['Body', content.body or ''],
+        ],
+    }]
+    if derived:
+        tables.append({
+            'name': 'Derived Content',
+            'columns': ['Platform', 'Content'],
+            'rows': [[d.platform, d.content] for d in derived],
+        })
+    title = f"{client.name} — {content.meta_title or content.h1 or f'Content {content_id}'}"
+    return _export_response(fmt, title, tables, f'content-{content_id}')
 
 
 # ==================== MAIN ====================

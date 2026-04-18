@@ -552,6 +552,27 @@
                 setTimeout(() => { button.innerHTML = originalText; }, 2000);
             });
         }
+
+        async function ctCopyExport(url, button) {
+            const original = button.innerHTML;
+            try {
+                button.disabled = true;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i> Fetching…';
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const text = await res.text();
+                await navigator.clipboard.writeText(text);
+                button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            } catch (e) {
+                console.error(e);
+                button.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error';
+            } finally {
+                setTimeout(() => {
+                    button.innerHTML = original;
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
     </script>
     <script>{% include 'edit.js' %}</script>
     {% block extra_js %}{% endblock %}

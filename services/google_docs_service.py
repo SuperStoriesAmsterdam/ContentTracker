@@ -5,6 +5,8 @@ Add this file to your services/ folder
 
 import os
 import json
+import time
+import threading
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, List, Dict
 from google.oauth2.credentials import Credentials
@@ -13,6 +15,26 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from config import Config
+
+
+# GSC data is delayed ~3 days, so a short in-memory cache is safe.
+# Cache is per-process; with 2 gunicorn workers, each warms independently.
+GSC_CACHE_TTL = 900  # 15 minutes
+_gsc_cache: Dict[tuple, Tuple[float, object]] = {}
+_gsc_cache_lock = threading.Lock()
+
+
+def _gsc_cache_get(key: tuple):
+    with _gsc_cache_lock:
+        entry = _gsc_cache.get(key)
+        if entry and time.time() - entry[0] < GSC_CACHE_TTL:
+            return entry[1]
+    return None
+
+
+def _gsc_cache_set(key: tuple, value) -> None:
+    with _gsc_cache_lock:
+        _gsc_cache[key] = (time.time(), value)
 
 
 class GoogleDocsService:
@@ -235,12 +257,12 @@ class GoogleDocsService:
         sites = service.sites().list().execute()
         return [site['siteUrl'] for site in sites.get('siteEntry', [])]
     
-    def get_search_performance(self, creds_dict: dict, site_url: str, 
+    def get_search_performance(self, creds_dict: dict, site_url: str,
                                 url_filter: str = None,
                                 days: int = 28) -> Dict:
         """
         Get search performance data for a site or specific URL.
-        
+
         Returns:
             {
                 'rows': [
@@ -249,6 +271,12 @@ class GoogleDocsService:
                 'totals': {'clicks': int, 'impressions': int}
             }
         """
+        cache_key = ('search_performance', site_url, url_filter, days,
+                     creds_dict.get('refresh_token'))
+        cached = _gsc_cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         credentials = self.get_credentials(creds_dict)
         service = build('searchconsole', 'v1', credentials=credentials)
         
@@ -287,19 +315,27 @@ class GoogleDocsService:
                 'position': round(row['position'], 1)
             })
         
-        return {
+        result = {
             'rows': rows,
             'totals': {
                 'clicks': sum(r['clicks'] for r in rows),
                 'impressions': sum(r['impressions'] for r in rows)
             }
         }
-    
+        _gsc_cache_set(cache_key, result)
+        return result
+
     def get_page_performance(self, creds_dict: dict, site_url: str,
                              days: int = 28) -> List[Dict]:
         """
         Get performance data grouped by page.
         """
+        cache_key = ('page_performance', site_url, days,
+                     creds_dict.get('refresh_token'))
+        cached = _gsc_cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         credentials = self.get_credentials(creds_dict)
         service = build('searchconsole', 'v1', credentials=credentials)
         
@@ -325,7 +361,8 @@ class GoogleDocsService:
                 'ctr': round(row['ctr'] * 100, 2),
                 'position': round(row['position'], 1)
             })
-        
+
+        _gsc_cache_set(cache_key, pages)
         return pages
 
     def get_keyword_opportunities(self, creds_dict: dict, site_url: str,
@@ -334,6 +371,12 @@ class GoogleDocsService:
         Get keyword opportunities — queries ranking positions 5-20 with decent impressions.
         These are "low-hanging fruit" that could benefit from new or improved content.
         """
+        cache_key = ('keyword_opportunities', site_url, days,
+                     creds_dict.get('refresh_token'))
+        cached = _gsc_cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         credentials = self.get_credentials(creds_dict)
         service = build('searchconsole', 'v1', credentials=credentials)
 
@@ -385,6 +428,7 @@ class GoogleDocsService:
 
         # Sort by priority score descending
         opportunities.sort(key=lambda x: x['priority'], reverse=True)
+        _gsc_cache_set(cache_key, opportunities)
         return opportunities
 
     # ===== GOOGLE ANALYTICS METHODS =====

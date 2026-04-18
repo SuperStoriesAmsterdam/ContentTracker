@@ -2,6 +2,7 @@
 {% block title %}Multi-Site Dashboard — {{ client.name }}{% endblock %}
 
 {% block content %}
+{% from '_export_buttons.html' import export_buttons %}
 <!-- Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
     <div>
@@ -9,6 +10,7 @@
         <p class="ct-page-subtitle" style="margin-bottom: 0;">Combined search performance across all properties</p>
     </div>
     <div style="display: flex; gap: 8px; align-items: center;">
+        {{ export_buttons('/export/multi-site') }}
         {% if not has_sites %}
         <a href="{{ url_for('site_add') }}" class="ct-btn-outline" style="text-decoration: none; font-size: 13px; padding: 8px 20px;">
             <i class="bi bi-plus-lg me-1"></i>Add Sites

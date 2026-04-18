@@ -3,16 +3,20 @@
 {% block title %}Search Console — {{ client.name }}{% endblock %}
 
 {% block content %}
+{% from '_export_buttons.html' import export_buttons %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
     <h1 class="ct-page-title" style="margin-bottom: 0;">Search Console</h1>
-    {% if performance %}
-    <form method="POST" action="{{ url_for('take_gsc_snapshot') }}" style="display: inline;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="ct-btn-outline" style="font-size: 13px; padding: 8px 20px;">
-            <i class="bi bi-camera me-1"></i>Take Snapshot
-        </button>
-    </form>
-    {% endif %}
+    <div style="display: inline-flex; gap: 8px; align-items: center;">
+        {{ export_buttons('/export/search-console') }}
+        {% if performance %}
+        <form method="POST" action="{{ url_for('take_gsc_snapshot') }}" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="ct-btn-outline" style="font-size: 13px; padding: 8px 20px;">
+                <i class="bi bi-camera me-1"></i>Take Snapshot
+            </button>
+        </form>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Site Selection -->

@@ -3,7 +3,11 @@
 {% block title %}Analytics — {{ client.name }}{% endblock %}
 
 {% block content %}
-<h1 class="ct-page-title">Google Analytics</h1>
+{% from '_export_buttons.html' import export_buttons %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1 class="ct-page-title" style="margin-bottom: 0;">Google Analytics</h1>
+    {{ export_buttons('/export/analytics') }}
+</div>
 
 <!-- Property Selection -->
 <div style="background: var(--ct-bg-muted); border-radius: var(--ct-radius-card); padding: 20px 24px; margin-bottom: 32px;">

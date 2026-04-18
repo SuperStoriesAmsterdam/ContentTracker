@@ -343,6 +343,90 @@
         </div>
     </div>
 
+    <!-- Attribution setup -->
+    <div style="text-align: center; margin-bottom: 64px;">
+        <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 16px;">Attribution setup — the one-time wiring</h2>
+        <p style="font-size: 16px; color: #1d1d1d; line-height: 1.7; max-width: 640px; margin: 0 auto 32px;">
+            Before the Content Tracker can show which content drives revenue, three things need to be in place. Set them up once per client; they run automatically from then on.
+        </p>
+
+        <!-- The convention -->
+        <div style="max-width: 720px; margin: 0 auto 16px; text-align: left; border: 1px solid #E8E6E2; border-radius: 12px; padding: 32px 36px;">
+            <div style="font-size: 11px; letter-spacing: 2px; color: #1d1d1d; margin-bottom: 12px;">THE CONVENTION</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Three UTM parameters. No more, no less.</h3>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin-bottom: 20px;">
+                Every link that sends someone toward a sale — from a blog post, a newsletter, a LinkedIn post, anywhere — carries three tags. These tags travel with the visitor into GoHighLevel, where they get attached to the contact. When the contact buys, we know which piece of content started it.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 150px 1fr 1fr; gap: 10px 20px; font-size: 14px; color: #1d1d1d; margin-bottom: 20px;">
+                <div style="font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #E8E6E2;">Parameter</div>
+                <div style="font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #E8E6E2;">What it answers</div>
+                <div style="font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #E8E6E2;">Example values</div>
+
+                <div style="font-family: monospace; font-size: 13px;">utm_source</div>
+                <div>Where is the traffic coming from?</div>
+                <div style="font-family: monospace; font-size: 12px;">website · newsletter · linkedin · partner-anlp</div>
+
+                <div style="font-family: monospace; font-size: 13px;">utm_medium</div>
+                <div>What type of channel?</div>
+                <div style="font-family: monospace; font-size: 12px;">content · email · social · cpc · referral</div>
+
+                <div style="font-family: monospace; font-size: 13px;">utm_campaign</div>
+                <div>Which specific piece drove the click?</div>
+                <div style="font-family: monospace; font-size: 12px;">core-transformation-process · april-launch</div>
+            </div>
+
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin: 0; padding: 16px 20px; background: #F8F7F5; border-radius: 8px;">
+                <strong>The rule that matters most:</strong> <code style="font-family: monospace; font-size: 14px;">utm_campaign</code> is always the content slug for articles (<code style="font-family: monospace; font-size: 13px;">core-transformation-process</code>) or the send name for email blasts (<code style="font-family: monospace; font-size: 13px;">april-training-launch</code>). That field is the join key — it's what lets the Content Tracker match revenue back to the article that earned it.
+            </p>
+        </div>
+
+        <!-- Step 1: Webflow -->
+        <div style="max-width: 720px; margin: 0 auto 16px; text-align: left; border: 1px solid #E8E6E2; border-radius: 12px; padding: 32px 36px;">
+            <div style="font-size: 11px; letter-spacing: 2px; color: #1d1d1d; margin-bottom: 12px;">STEP 1 — ON WEBFLOW</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Auto-tag every outbound link once, forever.</h3>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin-bottom: 16px;">
+                The biggest source of broken attribution is humans forgetting to tag links. So we don't rely on humans. A small piece of JavaScript runs on every page and tags outbound links automatically.
+            </p>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin-bottom: 16px;">
+                <strong>What it does:</strong> on every page load, the script finds links pointing to the checkout domain (GoHighLevel, Cvent, Stripe — wherever the sale happens) and appends <code style="font-family: monospace; font-size: 13px;">?utm_source=website&amp;utm_medium=content&amp;utm_campaign={page-slug}</code>. If a link already has UTMs, it leaves them alone.
+            </p>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin: 0;">
+                <strong>Where it goes:</strong> Webflow → Site Settings → Custom Code → Footer Code. Paste once, test on one page, then forget about it. The marketing team adds links normally; attribution happens in the background.
+            </p>
+        </div>
+
+        <!-- Step 2: GoHighLevel -->
+        <div style="max-width: 720px; margin: 0 auto 16px; text-align: left; border: 1px solid #E8E6E2; border-radius: 12px; padding: 32px 36px;">
+            <div style="font-size: 11px; letter-spacing: 2px; color: #1d1d1d; margin-bottom: 12px;">STEP 2 — ON GOHIGHLEVEL</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Four custom fields on the Contact object.</h3>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin-bottom: 16px;">
+                GoHighLevel has a built-in "Attribution Source," but it's hard to query via API and behaves inconsistently. We use explicit custom fields instead. Create them once in Settings → Custom Fields:
+            </p>
+            <ul style="font-size: 15px; color: #1d1d1d; line-height: 1.8; padding-left: 20px; margin-bottom: 16px;">
+                <li><code style="font-family: monospace; font-size: 14px;">utm_source</code> — text field</li>
+                <li><code style="font-family: monospace; font-size: 14px;">utm_medium</code> — text field</li>
+                <li><code style="font-family: monospace; font-size: 14px;">utm_campaign</code> — text field</li>
+                <li><code style="font-family: monospace; font-size: 14px;">utm_content</code> — text field (for future A/B testing on CTAs)</li>
+            </ul>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin: 0;">
+                Then on every form or funnel that creates contacts, map the URL's UTM parameters to those fields. Test by submitting a form from a tagged URL and checking the contact record — the fields should populate automatically. Do this once per client.
+            </p>
+        </div>
+
+        <!-- Step 3: Outside Webflow -->
+        <div style="max-width: 720px; margin: 0 auto; text-align: left; background: #F8F7F5; border-radius: 12px; padding: 32px 36px;">
+            <div style="font-size: 11px; letter-spacing: 2px; color: #1d1d1d; margin-bottom: 12px;">STEP 3 — EVERYTHING OUTSIDE WEBFLOW</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Email and social — use the tagged link from the tool.</h3>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin-bottom: 16px;">
+                The Webflow script only handles clicks from the website itself. For email blasts, LinkedIn posts, Substack newsletters, paid ads — anything outside the site — use the Content Tracker's per-piece link generator (see the next section). It produces pre-tagged URLs for each channel. Copy, paste, share.
+            </p>
+            <p style="font-size: 15px; color: #1d1d1d; line-height: 1.7; margin: 0;">
+                <strong>One rule, shared with everyone who touches a link:</strong> never share a bare URL. Always use the tagged version. If you're briefing an email marketer or a social contractor, send them the link generator and that single rule. That is the whole hand-off.
+            </p>
+        </div>
+    </div>
+
     <!-- UTM workflow -->
     <div style="text-align: center; margin-bottom: 64px;">
         <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 16px;">Sharing content — the 30-second UTM workflow</h2>

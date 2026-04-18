@@ -2,6 +2,7 @@
 {% block title %}Ad Spend — {{ client.name }}{% endblock %}
 
 {% block content %}
+{% from '_export_buttons.html' import export_buttons %}
 <!-- content -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -9,6 +10,7 @@
             <h2 class="mb-1">Ad Spend</h2>
             <p class="text-muted mb-0">Monthly advertising spend — entered manually, shown alongside organic performance.</p>
         </div>
+        {{ export_buttons('/export/ad-spend') }}
     </div>
 
     <div class="row">
